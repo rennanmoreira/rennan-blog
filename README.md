@@ -2,7 +2,7 @@
 </br>
 </br>
 <div>
-  <p align="center">A template project using <a href="https://nestjs.com" target="_blank">NestJS</a> + <a href="https://www.prisma.io" target="_blank">Prisma</a> using <a href="http://nodejs.org" target="_blank">Node.js</a> for building efficient and scalable server-side applications.</p>
+  <p align="center">A Rennan Blog using <a href="https://nestjs.com" target="_blank">NestJS</a> + <a href="https://www.prisma.io" target="_blank">Prisma</a> using <a href="http://nodejs.org" target="_blank">Node.js</a> for building efficient and scalable server-side applications.</p>
   <p align="center">
     <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
     <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
@@ -13,13 +13,13 @@
 
 ## 📄 Description
 
-**Rennan's Template API** is a NestJS starter template with pre-configured and ready-to-use API structure, firebase authentication and Prisma with PostgresSQL or MySQL initial configurations.
+**Rennan's Blog API** is a NestJS pre-configured and ready-to-use API structure, firebase authentication and Prisma with PostgresSQL or MySQL initial configurations.
 
 </br>
 
 ## 📋 Features
 
-- 🚀 **Ready-to-use API template**
+- 🚀 **Ready-to-use API Blog**
 - 🔐 **Firebase Authentication system**
 - 🐘 **PostgreSQL with Prisma ORM**
 - 📦 **Pre-configured Docker setup**
@@ -31,11 +31,11 @@
 
 > Clone repository
 > ```sh
-> git clone https://github.com/rennanmoreira/rennan-template-api.git
+> git clone https://github.com/rennanmoreira/rennan-blog-api.git
 > ```
 > Enter in new repository folder
 > ```sh
-> cd rennan-template-api
+> cd rennan-blog
 > ```
 > Install all node dependencies (use yarn or npm install)
 > ```sh
@@ -118,7 +118,7 @@ After starting the application, access the Swagger documentation at: http://loca
 
 ## ❤️ Support
 
-This Rennan's Template API is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please send me an email (rennanmore@gmail.com) or dicover more about [project](https://github.com/rennanmoreira/rennan-template-api).
+This Rennan's Blog API is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please send me an email (rennanmore@gmail.com) or dicover more about [project](https://github.com/rennanmoreira/rennan-blog).
 
 </br>
 
@@ -132,4 +132,4 @@ This Rennan's Template API is an MIT-licensed open source project. It can grow t
 
 ## 📜 License
 
-Rennan's Template API is [MIT licensed](LICENSE).
+Rennan's Blog API is [MIT licensed](LICENSE).

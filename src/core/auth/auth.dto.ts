@@ -90,7 +90,7 @@ export class GoogleAccountDTO {
   provider: string
 
   @ApiProperty({
-    example: 'rennan-api',
+    example: 'rennan-blog-api',
     description: 'Provider of the account',
     type: String
   })

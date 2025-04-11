@@ -40,7 +40,7 @@ export class AuthService {
         name: data?.name,
         first_name,
         last_name,
-        lead_origin: 'rennan-api',
+        lead_origin: 'rennan-blog-api',
         email: data.email,
         phone: data.phone || null,
         is_active: true,
@@ -86,7 +86,7 @@ export class AuthService {
         last_name,
         is_active: true,
         is_provider_anonymous,
-        lead_origin: 'rennan-api',
+        lead_origin: 'rennan-blog-api',
       })
     } catch (error) {
       throw this.handleTokenUnauthorizedError(error)

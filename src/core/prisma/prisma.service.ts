@@ -34,7 +34,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
     this.$on('query' as never, (e: any) => {
       if (PRISMA_LOGS_TO_IGNORE.includes(e?.query)) return
-      const message = `[QUERY] ${e?.query?.replaceAll(/"rennan-api"./g, '')}`
+      const message = `[QUERY] ${e?.query?.replaceAll(/"rennan-blog-api"./g, '')}`
 
       if (IS_PRODUCTION) {
         this.logger.log(message)
