@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express' // TODO: Test if this makes senses let the express here
+import { Request, Response, NextFunction } from 'express'
 
 @Injectable()
 export class ErrorHandlingMiddleware implements NestMiddleware {

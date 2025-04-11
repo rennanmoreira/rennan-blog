@@ -23,7 +23,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       ]
     })
 
-    // Apply middlewares TODO: Deprecated in Prisma v4
     this.$use(softDeleteMiddleware())
     this.$use(clearMiddleware())
     this.$use(countMiddleware(this))

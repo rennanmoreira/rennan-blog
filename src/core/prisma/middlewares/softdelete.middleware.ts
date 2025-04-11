@@ -24,11 +24,9 @@ export function softDeleteMiddleware() {
       params.action = 'update'
       params.args['data'] = { deleted_at: new Date() }
 
-      // TODO: Test if this is working to softdelete
       await handleCascadeDelete(params, next)
     }
 
-    // TODO: Test if this is working when have many in sublevels
     if (params.action === 'deleteMany') {
       params.action = 'updateMany';
       params.args['data'] = { deleted_at: new Date() };
