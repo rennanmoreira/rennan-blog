@@ -26,9 +26,6 @@ export class AuthService {
       if (await this.accountService.verifyIfEmailExists(data.email))
         throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST)
 
-      if (data.phone && (await this.accountService.verifyIfPhoneExists(data.phone)))
-        throw new HttpException('Phone already exists', HttpStatus.BAD_REQUEST)
-
       const registerResponse = await this.firebaseService.register(data.email, data.password)
       const decodedToken = await this.firebaseService.getDecodedToken(registerResponse.idToken)
 
@@ -42,14 +39,13 @@ export class AuthService {
         last_name,
         lead_origin: 'rennan-blog-api',
         email: data.email,
-        phone: data.phone || null,
         is_active: true,
         is_provider_anonymous: false,
         is_email_verified: decodedToken?.email_verified || false,
         provider: decodedToken?.firebase?.sign_in_provider || 'password',
         provider_aud: decodedToken.aud,
-        provider_user_id: decodedToken.user_id,
-        provider_identity_id: data.email,
+        provider_account_id: decodedToken.user_id,
+        provider_identity_id: data.email
       })
 
       return {
@@ -86,7 +82,7 @@ export class AuthService {
         last_name,
         is_active: true,
         is_provider_anonymous,
-        lead_origin: 'rennan-blog-api',
+        lead_origin: 'rennan-blog-api'
       })
     } catch (error) {
       throw this.handleTokenUnauthorizedError(error)

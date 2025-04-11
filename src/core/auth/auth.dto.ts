@@ -103,7 +103,7 @@ export class GoogleAccountDTO {
     type: String
   })
   @IsString()
-  provider_user_id: string
+  provider_account_id: string
 
   @ApiProperty({
     example: 'user@test.com',
@@ -244,7 +244,7 @@ export class ResponseAuthMeDTO extends ResponseAccountDTO {
   email: string
 
   @ApiPropertyOptional({
-    example: Role.PATIENT,
+    example: Role.USER,
     description: 'Role of the account',
     type: String,
     enum: Role

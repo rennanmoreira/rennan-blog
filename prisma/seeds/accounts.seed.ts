@@ -18,7 +18,7 @@ const ACCOUNTS = [
     birth_date: '2025-01-01T00:00:00.000Z',
     provider: 'provider-example',
     provider_aud: 'provider-aud-example',
-    provider_user_id: 'provider-user-id-example',
+    provider_account_id: 'provider-user-id-example',
     provider_identity_id: 'provider-identity-id-example'
   }
 ]

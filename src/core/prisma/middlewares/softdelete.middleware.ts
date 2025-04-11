@@ -28,10 +28,10 @@ export function softDeleteMiddleware() {
     }
 
     if (params.action === 'deleteMany') {
-      params.action = 'updateMany';
-      params.args['data'] = { deleted_at: new Date() };
+      params.action = 'updateMany'
+      params.args['data'] = { deleted_at: new Date() }
 
-      await handleCascadeDelete(params, next);
+      await handleCascadeDelete(params, next)
     }
 
     return next(params)

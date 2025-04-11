@@ -60,7 +60,7 @@ export class AuthGuard implements CanActivate {
         is_email_verified: user.emailVerified || false,
         provider: user.providerData[0].providerId,
         provider_aud: decodedToken.aud,
-        provider_user_id: user.uid,
+        provider_account_id: user.uid,
         provider_identity_id: user.providerData[0].uid
       }
 
@@ -72,10 +72,8 @@ export class AuthGuard implements CanActivate {
 
         if (user.email) {
           account = await this.accountService.getByEmail(user.email)
-        } else if (user.phoneNumber) {
-          account = await this.accountService.getByPhone(user.phoneNumber)
         } else if (user.uid) {
-          account = await this.accountService.getByProviderUserId(user.uid)
+          account = await this.accountService.getByProviderAccountId(user.uid)
         }
 
         if (!account) {
