@@ -1,16 +1,14 @@
 import { Body, Controller, Get, HttpCode, Post, Res, Req, Session, Version } from '@nestjs/common'
-import { EmailDTO, GoogleAccountRegisterDTO, LoginDTO, LoginWithLinkDTO, RegisterDTO } from './auth.dto'
+import { ChangePasswordDTO, EmailDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from './auth.dto'
 import { AuthService } from './auth.service'
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ErrorResponse } from '@utils/dtos/error-response.dto'
 import { ResponseAccountDTO } from '@accounts/account.dto'
 import { Request, Response } from 'express'
 import { Public } from 'src/decorators/public.decorator'
-import { Roles } from 'src/decorators/roles.decorator'
-import { Role } from 'src/enums/role.enum'
 
 @ApiTags('Authentications')
-@Controller({ path: 'auth', version: '1' })
+@Controller({ path: 'auth' }) //, version: '1' })
 @ApiResponse({
   status: 500,
   description: 'Internal Server Error',
@@ -19,7 +17,7 @@ import { Role } from 'src/enums/role.enum'
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Version('1')
+  // @Version('1')
   @Post('verify-email')
   @Public()
   async verifyIfEmailExists(
@@ -40,62 +38,36 @@ export class AuthController {
   @HttpCode(200)
   @Public()
   async login(@Body() data: LoginDTO): Promise<ResponseAccountDTO> {
-    return this.authService.login(data.email, data.password)
+    return this.authService.login(data)
   }
 
-  @Post('login-with-link')
+  @Post('logout')
   @HttpCode(200)
-  @Public()
-  async loginWithLink(@Req() request: Request, @Body() data: LoginWithLinkDTO): Promise<{ url: string }> {
-    const base_url = data.base_url || request?.headers?.origin
-    return this.authService.loginWithLink(data.email, base_url)
+  async logout(@Body('refresh_token') refresh_token: string): Promise<void> {
+    await this.authService.logout(refresh_token)
   }
-
-  @Post('google/register')
-  @HttpCode(201)
-  @ApiBearerAuth()
-  async registerWithGoogle(
-    @Req() request: Request,
-    @Body('is_provider_anonymous') is_provider_anonymous: boolean
-  ): Promise<ResponseAccountDTO> {
-    return this.authService.registerWithGoogle(request['user'], is_provider_anonymous)
-  }
-
-  @Post('google/login')
-  @HttpCode(200)
-  @ApiBearerAuth()
-  async loginWithGoogle(@Req() request: Request): Promise<ResponseAccountDTO> {
-    return this.authService.loginWithGoogle(request['user'])
-  }
-
-  // @Post('logout')
-  // @HttpCode(200)
-  // async logout(@Body('refresh_token') refresh_token: string): Promise<void> {
-  //   await this.authService.logout(refresh_token)
-  // }
 
   @Get('me')
   @HttpCode(200)
-  @ApiBearerAuth()
   async getMe(@Req() request: Request): Promise<ResponseAccountDTO> {
-    return this.authService.getAccountData(request['user'])
+    return this.authService.getMe(request['user'])
   }
 
-  // @Post('refresh-token')
-  // @HttpCode(201)
-  // async refresh(@Body('refresh_token') refresh_token: string): Promise<{ access_token: string }> {
-  //   return this.authService.refreshToken(refresh_token)
-  // }
+  @Post('refresh-token')
+  @HttpCode(201)
+  async refresh(@Body('refresh_token') refresh_token: string): Promise<{ access_token: string }> {
+    return this.authService.refreshToken(refresh_token)
+  }
 
-  // @Post('reset-password')
-  // @HttpCode(200)
-  // async resetPassword(@Body() email: string): Promise<void> {
-  //   await this.authService.resetPassword(email)
-  // }
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(@Body() data: ResetPasswordDTO): Promise<void> {
+    await this.authService.resetPassword(data)
+  }
 
-  // @Post('change-password')
-  // @HttpCode(200)
-  // async changePassword(@Body() data: ChangePasswordDTO): Promise<void> {
-  //   await this.authService.changePassword(data)
-  // }
+  @Post('change-password')
+  @HttpCode(200)
+  async changePassword(@Body() data: ChangePasswordDTO): Promise<void> {
+    await this.authService.changePassword(data)
+  }
 }

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger'
+import { ApiResponse, ApiQuery } from '@nestjs/swagger'
 import {
   CreateAccountEventDTO,
   UpdateAccountEventDTO,
@@ -12,7 +12,6 @@ import { AccountEventService } from '@account-events/account-event.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('account-events')
-@ApiBearerAuth()
 export class AccountEventController {
   constructor(private readonly accountEventService: AccountEventService) {}
 

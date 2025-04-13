@@ -1,7 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { ResponseMetaDTO } from '@utils/dtos/pagination.dto'
-import { IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsJSON } from 'class-validator'
-import { JsonValue } from '@prisma/client/runtime/library'
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  IsNotEmpty,
+  IsStrongPassword,
+  MinLength,
+  IsNumber
+} from 'class-validator'
+import { Match } from 'src/decorators/match.decorator'
 
 export class CreateAccountDTO {
   @ApiProperty({
@@ -11,6 +20,28 @@ export class CreateAccountDTO {
   })
   @IsString()
   email: string
+
+  @ApiProperty({
+    example: '123456',
+    description: 'Password of the account',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsStrongPassword(
+    { minLength: 6, minLowercase: 0, minUppercase: 0, minNumbers: 0, minSymbols: 0 },
+    { message: 'Senha precisa ter no mínimo 6 caracteres' }
+  )
+  password: string
+
+  @ApiPropertyOptional({
+    example: 'password',
+    description: 'Password confirmation',
+    type: String
+  })
+  @IsOptional()
+  @IsString()
+  @Match('password', { message: 'Passwords do not match' })
+  password_confirmation?: string
 
   @ApiPropertyOptional({
     example: true,
@@ -47,15 +78,6 @@ export class CreateAccountDTO {
   @IsOptional()
   @IsBoolean()
   is_moderator?: boolean
-
-  @ApiPropertyOptional({
-    example: true,
-    type: Boolean,
-    description: 'Is provider anonymous of the Account'
-  })
-  @IsOptional()
-  @IsBoolean()
-  is_provider_anonymous?: boolean
 
   @ApiProperty({
     example: 'Name example',
@@ -109,40 +131,6 @@ export class CreateAccountDTO {
   @IsOptional()
   @IsDate()
   birth_date?: Date
-
-  @ApiPropertyOptional({
-    example: 'Provider example',
-    type: String,
-    description: 'Provider of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider?: string
-
-  @ApiPropertyOptional({
-    example: 'Provider aud example',
-    type: String,
-    description: 'Provider aud of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_aud?: string
-
-  @ApiProperty({
-    example: 'Provider user id example',
-    type: String,
-    description: 'Provider user id of the Account'
-  })
-  @IsString()
-  provider_account_id: string
-
-  @ApiProperty({
-    example: 'Provider identity id example',
-    type: String,
-    description: 'Provider identity id of the Account'
-  })
-  @IsString()
-  provider_identity_id: string
 }
 
 export class UpdateAccountDTO {
@@ -154,6 +142,18 @@ export class UpdateAccountDTO {
   @IsOptional()
   @IsString()
   email?: string
+
+  @ApiPropertyOptional({
+    example: '123456',
+    description: 'Password of the account',
+    type: String
+  })
+  @IsOptional()
+  @IsStrongPassword(
+    { minLength: 6, minLowercase: 0, minUppercase: 0, minNumbers: 0, minSymbols: 0 },
+    { message: 'Senha precisa ter no mínimo 6 caracteres' }
+  )
+  password?: string
 
   @ApiPropertyOptional({
     example: true,
@@ -190,15 +190,6 @@ export class UpdateAccountDTO {
   @IsOptional()
   @IsBoolean()
   is_moderator?: boolean
-
-  @ApiPropertyOptional({
-    example: true,
-    type: Boolean,
-    description: 'Is provider anonymous of the Account'
-  })
-  @IsOptional()
-  @IsBoolean()
-  is_provider_anonymous?: boolean
 
   @ApiPropertyOptional({
     example: 'Name example',
@@ -255,40 +246,22 @@ export class UpdateAccountDTO {
   birth_date?: Date
 
   @ApiPropertyOptional({
-    example: 'Provider example',
+    example: 'Refresh token example',
     type: String,
-    description: 'Provider of the Account'
+    description: 'Refresh token of the Account'
   })
   @IsOptional()
   @IsString()
-  provider?: string
+  refresh_token?: string
 
   @ApiPropertyOptional({
-    example: 'Provider aud example',
-    type: String,
-    description: 'Provider aud of the Account'
+    example: 1,
+    type: Number,
+    description: 'Token version of the Account'
   })
   @IsOptional()
-  @IsString()
-  provider_aud?: string
-
-  @ApiPropertyOptional({
-    example: 'Provider user id example',
-    type: String,
-    description: 'Provider user id of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_account_id?: string
-
-  @ApiPropertyOptional({
-    example: 'Provider identity id example',
-    type: String,
-    description: 'Provider identity id of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_identity_id?: string
+  @IsNumber()
+  token_version?: number
 }
 
 export class FilterAccountDTO {
@@ -331,14 +304,6 @@ export class FilterAccountDTO {
   @IsOptional()
   @IsBoolean()
   is_moderator?: boolean
-
-  @ApiPropertyOptional({
-    type: Boolean,
-    description: 'Is provider anonymous of the Account'
-  })
-  @IsOptional()
-  @IsBoolean()
-  is_provider_anonymous?: boolean
 
   @ApiPropertyOptional({
     type: String,
@@ -387,38 +352,6 @@ export class FilterAccountDTO {
   @IsOptional()
   @IsDate()
   birth_date?: Date
-
-  @ApiPropertyOptional({
-    type: String,
-    description: 'Provider of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider?: string
-
-  @ApiPropertyOptional({
-    type: String,
-    description: 'Provider aud of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_aud?: string
-
-  @ApiPropertyOptional({
-    type: String,
-    description: 'Provider user id of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_account_id?: string
-
-  @ApiPropertyOptional({
-    type: String,
-    description: 'Provider identity id of the Account'
-  })
-  @IsOptional()
-  @IsString()
-  provider_identity_id?: string
 }
 
 export class SortByAccountDTO {
@@ -468,6 +401,24 @@ export class ResponseAccountDTO extends CreateAccountDTO {
   @IsOptional()
   @IsString()
   token?: string
+
+  @ApiPropertyOptional({
+    example: 'refresh_token',
+    description: 'refresh token of the account',
+    type: String
+  })
+  @IsOptional()
+  @IsString()
+  refresh_token?: string
+
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'token version of the account',
+    type: Number
+  })
+  @IsOptional()
+  @IsNumber()
+  token_version?: number
 
   @ApiProperty({
     example: '2021-09-01T00:00:00.000Z',

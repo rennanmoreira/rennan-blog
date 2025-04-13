@@ -115,7 +115,7 @@ export class AccountService {
     }
   }
 
-  async getByEmail(email: string): Promise<ResponseAccountDTO> {
+  async getByEmail(email: string, returnPassword = false): Promise<ResponseAccountDTO> {
     try {
       const account = await this.accountRepository.getByEmail(email)
 
@@ -123,21 +123,7 @@ export class AccountService {
         throw new NotFoundException('Account not found or is deleted')
       }
 
-      return parseAccount(account)
-    } catch (error: Error | any) {
-      throw error
-    }
-  }
-
-  async getByProviderAccountId(provider_account_id: string): Promise<ResponseAccountDTO> {
-    try {
-      const account = await this.accountRepository.getByproviderAccountId(provider_account_id)
-
-      if (!account) {
-        throw new NotFoundException('Account not found or is deleted')
-      }
-
-      return parseAccount(account)
+      return parseAccount(account, returnPassword)
     } catch (error: Error | any) {
       throw error
     }

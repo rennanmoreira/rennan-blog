@@ -40,10 +40,6 @@ export class AccountRepository {
     return await this.prisma.account.findUnique({ where: { email } })
   }
 
-  async getByproviderAccountId(provider_account_id: string): Promise<AccountWithRelations | null> {
-    return await this.prisma.account.findFirst({ where: { provider_account_id } })
-  }
-
   async verifyIfEmailExists(email: string): Promise<boolean> {
     return (await this.prisma.account.count({ where: { email } })) > 0
   }

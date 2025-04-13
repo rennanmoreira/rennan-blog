@@ -6,7 +6,7 @@ export function parseBlogPost(blogPost: BlogPostWithRelations): ResponseBlogPost
 
   return {
     ...blogPost,
-    id: blogPost.id,
+    id: Number(blogPost.id),
 
     created_at: blogPost.created_at,
     updated_at: blogPost.updated_at,

@@ -132,6 +132,10 @@ export class CommentService {
   private buildFilters(filters: FilterCommentDTO): Prisma.CommentWhereInput {
     const where: Prisma.CommentWhereInput = {}
 
+    if (filters.post_id) {
+      where.post = { id: Number(filters.post_id) }
+    }
+
     return where
   }
 

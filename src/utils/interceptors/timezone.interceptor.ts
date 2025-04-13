@@ -8,7 +8,16 @@ export class TimezoneInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(map((data) => this.adjustTimezone(data, new Set())))
   }
-
+  // intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  //   return next.handle().pipe(
+  //     map((data) => {
+  //       const adjusted = this.adjustTimezone(data, new Set())
+  //       return JSON.parse(
+  //         JSON.stringify(adjusted, (_, value) => (typeof value === 'bigint' ? value.toString() : value))
+  //       )
+  //     })
+  //   )
+  // }
   private adjustTimezone(data: any, visited: Set<any>, depth = 0): any {
     if (!data || depth > 5 || visited.has(data)) {
       return data

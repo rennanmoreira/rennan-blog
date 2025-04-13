@@ -1,8 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { ResponseMetaDTO } from '@utils/dtos/pagination.dto'
-import { IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsJSON } from 'class-validator'
+import { IsDate, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
 import { EventType } from '@prisma/client'
-import { JsonValue } from '@prisma/client/runtime/library'
 
 export class CreateAccountEventDTO {
   @ApiProperty({

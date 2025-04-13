@@ -18,9 +18,12 @@ export class BlogPostService {
 
   async create(data: CreateBlogPostDTO): Promise<ResponseBlogPostDTO> {
     try {
+      const author = { connect: { id: data.author_id } }
+      delete data.author_id
+
       const blogPost = await this.blogPostRepository.create({
         ...data,
-        author: { connect: { id: data.author_id } }
+        author
       })
 
       return parseBlogPost(blogPost)
@@ -102,7 +105,8 @@ export class BlogPostService {
 
   async delete(blog_post_id: bigint): Promise<ResponseBlogPostDTO> {
     try {
-      return await this.blogPostRepository.delete(blog_post_id)
+      const blogPost = await this.blogPostRepository.delete(blog_post_id)
+      return parseBlogPost(blogPost)
     } catch (error: Error | any) {
       if (error.code === 'P2025') {
         throw new NotFoundException('BlogPost not found')

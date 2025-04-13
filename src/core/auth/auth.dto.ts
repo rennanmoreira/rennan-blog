@@ -12,125 +12,21 @@ import {
 } from 'class-validator'
 import { Role } from 'src/enums/role.enum'
 import { ResponseAccountDTO } from '@accounts/account.dto'
+import { Match } from 'src/decorators/match.decorator'
 
 export interface JwtAccessTokenPayload {
-  sub: number
+  uid: string
   email: string
-  role: Role
+  is_admin: boolean
   token_version?: number
 }
 
 export interface JwtRefreshTokenPayload {
-  sub: number
+  uid: string
   email: string
-  role: Role
+  is_admin: boolean
   token_version?: number
 }
-
-export class GoogleAccountDTO {
-  @ApiProperty({
-    example: 'User',
-    description: 'Name of the account',
-    type: String
-  })
-  @IsString()
-  name: string
-
-  @ApiProperty({
-    example: 'user@test.com',
-    description: 'Email of the account',
-    type: String
-  })
-  @IsString()
-  email: string
-
-  @ApiProperty({
-    example: '551399999999',
-    description: 'Phone of the account',
-    type: String
-  })
-  @IsString()
-  phone: string
-
-  @ApiProperty({
-    example: 1741026154,
-    description: 'Auth time of the account',
-    type: Number
-  })
-  auth_time: number
-
-  @ApiProperty({
-    example: 1741029754,
-    description: 'Expiration time of the account',
-    type: Number
-  })
-  exp_time: number
-
-  @ApiProperty({
-    example: false,
-    description: 'Is the account email verified in the provider',
-    type: Boolean
-  })
-  email_verified: boolean
-
-  @ApiProperty({
-    example: '123456',
-    description: 'Password of the account',
-    type: String
-  })
-  @IsString()
-  password: string
-
-  @ApiProperty({
-    example: 'google',
-    description: 'Provider of the account',
-    type: String
-  })
-  @IsString()
-  provider: string
-
-  @ApiProperty({
-    example: 'rennan-blog-api',
-    description: 'Provider of the account',
-    type: String
-  })
-  @IsString()
-  provider_aud: string
-
-  @ApiProperty({
-    example: 'oWvQEHOy46f0L2BQ9x3StsUvidasd',
-    description: 'Provider user id of the account',
-    type: String
-  })
-  @IsString()
-  provider_account_id: string
-
-  @ApiProperty({
-    example: 'user@test.com',
-    description: 'Provider identity id of the account',
-    type: String
-  })
-  @IsString()
-  provider_identity_id: string
-}
-
-export class GoogleAccountRegisterDTO {
-  @ApiProperty({
-    example: false,
-    description: 'Is the account anonymous in the provider'
-  })
-  @IsBoolean()
-  is_provider_anonymous: boolean
-
-  @ApiProperty({
-    example: 'user@test.com',
-    description: 'Email of the account',
-    type: String
-  })
-  @IsString()
-  email: string
-}
-
 export class AuthLoginDto {
   @IsEmail({}, { message: 'E-mail ou senha inválidos' })
   @MinLength(3, { message: 'E-mail ou senha inválidos' })
@@ -139,12 +35,6 @@ export class AuthLoginDto {
   @MinLength(6, { message: 'E-mail ou senha inválidos' })
   // @IsStrongPassword({minLength: 6, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0}, { message: 'E-mail ou senha inválidos'})
   password: string
-}
-
-export class AuthRefreshTokenDto {
-  @IsString({ message: 'Refresh token inválido' })
-  @IsNotEmpty({ message: 'Refresh token não pode ser vazio' })
-  refreshToken: string
 }
 
 export class EmailDTO {
@@ -206,6 +96,16 @@ export class RegisterDTO {
   password: string
 
   @ApiProperty({
+    example: '123456',
+    description: 'Password confirmation',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Match('password', { message: 'Passwords do not match' })
+  password_confirmation: string
+
+  @ApiProperty({
     example: 'User Test',
     description: 'Display name of the account',
     type: String
@@ -214,15 +114,98 @@ export class RegisterDTO {
   @IsNotEmpty({ message: `Campo 'name' não pode ser vazio` })
   @MinLength(6, { message: 'name precisa ter no mínimo 6 caracteres' })
   name: string
+}
 
-  @ApiPropertyOptional({
-    example: '551399999999',
-    description: 'Phone number of the account',
+export class ChangePasswordDTO {
+  @ApiProperty({
+    example: 1,
+    description: 'Id of the account',
     type: String
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  phone?: string
+  account_id: string
+
+  @ApiProperty({
+    example: 'password',
+    description: 'Current password of the account',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  password: string
+
+  @ApiProperty({
+    example: 'newpassword',
+    description: 'New password of the account',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minNumbers: 1,
+    minSymbols: 1,
+    minUppercase: 1
+  })
+  new_password: string
+
+  @ApiProperty({
+    example: 'newpassword',
+    description: 'New password confirmation',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Match('new_password', { message: 'New passwords do not match' })
+  new_password_confirmation: string
+}
+
+export class ResetPasswordDTO {
+  @ApiProperty({
+    example: 1,
+    description: 'Id of the account',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  account_id: string
+
+  @ApiProperty({
+    example: 'password',
+    description: 'New password of the account',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minNumbers: 1,
+    minSymbols: 1,
+    minUppercase: 1
+  })
+  password: string
+
+  @ApiProperty({
+    example: 'password',
+    description: 'New password confirmation',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Match('password')
+  password_confirmation: string
+
+  @ApiProperty({
+    example: 'token',
+    description: 'Token received in the email',
+    type: String
+  })
+  @IsNotEmpty()
+  @IsString()
+  token: string
 }
 
 export class ResponseAuthMeDTO extends ResponseAccountDTO {
@@ -258,7 +241,7 @@ export class ResponseAuthMeDTO extends ResponseAccountDTO {
     description: 'Refresh token of the account',
     type: String
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   refresh_token?: string
 }

@@ -5,6 +5,12 @@ export function clearMiddleware() {
     if (params.action === 'findMany') {
       const result = await next(params)
 
+      if (params.model === 'Account' && Array.isArray(result)) {
+        // result.forEach((account: Account) => {
+        //   delete account.password
+        //   delete account.refresh_token
+        // })
+      }
       return result
     }
 

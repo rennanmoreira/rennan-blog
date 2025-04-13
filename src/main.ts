@@ -56,28 +56,29 @@ async function bootstrap() {
     credentials: true
   })
 
-  const majorAppVersion = APP_VERSION?.length ? APP_VERSION.split('.')[0] : '1'
+  // const majorAppVersion = APP_VERSION?.length ? APP_VERSION.split('.')[0] : '1'
 
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: majorAppVersion
-  })
+  // app.enableVersioning({
+  //   type: VersioningType.URI,
+  //   defaultVersion: majorAppVersion
+  // })
 
   const options = new DocumentBuilder()
     .setTitle('Rennan API')
     .setDescription('The Rennan API')
     .setVersion(APP_VERSION)
-    .addBearerAuth()
-    // .addSecurityRequirements('bearer')
-    //     {
-    //   type: 'http',
-    //   scheme: 'bearer',
-    //   bearerFormat: 'JWT',
-    //   name: 'JWT',
-    //   description: 'Enter JWT token',
-    //   in: 'header',
-    // },
-    // 'jwt-auth',
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header'
+      },
+      'jwt-auth'
+    )
+    .addSecurityRequirements('jwt-auth')
     .build()
 
   if (IS_SWAGGER_AUTH_ENABLED) {

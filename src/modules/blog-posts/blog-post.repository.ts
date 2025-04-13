@@ -21,14 +21,17 @@ export class BlogPostRepository {
   }
 
   async findMany(filter: Prisma.BlogPostFindManyArgs): Promise<{ data: BlogPostWithRelations[]; count: number }> {
-    return (await this.prisma.blogPost.findMany(filter)) as unknown as FindManyWithCount<BlogPostWithRelations>
+    return (await this.prisma.blogPost.findMany({
+      ...filter,
+      include: { author: true }
+    })) as unknown as FindManyWithCount<BlogPostWithRelations>
   }
 
   async findUnique(filter: Prisma.BlogPostFindUniqueArgs): Promise<BlogPostWithRelations> {
-    return await this.prisma.blogPost.findUnique(filter)
+    return await this.prisma.blogPost.findUnique({ ...filter, include: { author: true } })
   }
 
   async getById(id: bigint): Promise<BlogPostWithRelations> {
-    return await this.prisma.blogPost.findUnique({ where: { id } })
+    return await this.prisma.blogPost.findUnique({ where: { id }, include: { author: true } })
   }
 }

@@ -11,20 +11,23 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
 
+COPY entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
+RUN npm install -g prisma
+RUN npm install -g @nestjs/cli
+
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm update -g npm
 RUN npm install
 
 COPY . .
 
-RUN npm install -g prisma
-RUN npm install -g @nestjs/cli
 RUN npm run prisma:generate
 
-# RUN npm run build
-
 EXPOSE 3000 9229
+
+# Comentar essas linhas abaixo quando for rodar local com o docker
+# RUN npm run build
 # CMD [ "npm", "run", "start:prod" ]
 

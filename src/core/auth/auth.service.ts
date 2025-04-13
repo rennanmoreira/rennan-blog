@@ -1,229 +1,185 @@
-import { HttpException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
 import {
   ResponseAuthMeDTO,
+  ChangePasswordDTO,
   LoginDTO,
   RegisterDTO,
-  GoogleAccountRegisterDTO,
-  GoogleAccountDTO,
-  EmailDTO
-} from './auth.dto'
+  ResetPasswordDTO,
+  JwtAccessTokenPayload,
+  JwtRefreshTokenPayload
+} from '@auth/auth.dto'
 import { AccountService } from '@accounts/account.service'
-import { ResponseAccountDTO } from '@accounts/account.dto'
-import { FirebaseService } from '../firebase/firebase.service'
-import { EventType } from '@prisma/client'
-import { splitUserName } from 'src/helpers/format-string.helper'
+import * as bcrypt from 'bcryptjs'
+import { Account } from '@prisma/client'
+import { AccountWithRelations } from '@accounts/account.type'
+import { parseAccount } from 'src/modules/accounts/account.parser'
+import { ResponseAccountDTO } from 'src/modules/accounts/account.dto'
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name)
   constructor(
     private readonly accountService: AccountService,
-    private readonly firebaseService: FirebaseService
+    private readonly jwtService: JwtService
   ) {}
 
-  async register(data: RegisterDTO): Promise<ResponseAccountDTO> {
-    try {
-      if (await this.accountService.verifyIfEmailExists(data.email))
-        throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST)
+  async login(data: LoginDTO): Promise<ResponseAccountDTO & { access_token: string; refresh_token: string }> {
+    const user = await this.validateUser(data.email, data.password)
 
-      const registerResponse = await this.firebaseService.register(data.email, data.password)
-      const decodedToken = await this.firebaseService.getDecodedToken(registerResponse.idToken)
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials')
+    }
 
-      if (!decodedToken) throw new HttpException('Invalid token', HttpStatus.BAD_REQUEST)
+    const new_token_version = user.token_version + 1
 
-      const [first_name, last_name] = splitUserName(data?.name)
+    const access_token = this.generateAccessToken(user, new_token_version)
+    const refresh_token = this.generateRefreshToken(user, new_token_version)
 
-      const account = await this.accountService.create({
-        name: data?.name,
-        first_name,
-        last_name,
-        lead_origin: 'rennan-blog-api',
-        email: data.email,
-        is_active: true,
-        is_provider_anonymous: false,
-        is_email_verified: decodedToken?.email_verified || false,
-        provider: decodedToken?.firebase?.sign_in_provider || 'password',
-        provider_aud: decodedToken.aud,
-        provider_account_id: decodedToken.user_id,
-        provider_identity_id: data.email
+    await this.accountService.update(user.id, {
+      refresh_token,
+      token_version: new_token_version
+    })
+
+    delete user.refresh_token
+
+    return { ...user, access_token, refresh_token }
+  }
+
+  async refreshToken(old_refresh_token: string): Promise<{ access_token: string; refresh_token: string }> {
+    const payload = this.jwtService.decode(old_refresh_token) as JwtRefreshTokenPayload
+
+    if (!payload) {
+      throw new UnauthorizedException('Invalid token')
+    }
+
+    const user = await this.accountService.getById(payload.uid)
+    if (!user || user.refresh_token !== old_refresh_token) {
+      throw new UnauthorizedException('Invalid token')
+    }
+
+    const newAccessToken = this.generateAccessToken(user, user.token_version)
+    const newRefreshToken = this.generateRefreshToken(user, user.token_version)
+
+    await this.accountService.update(user.id, {
+      refresh_token: newRefreshToken
+    })
+
+    return { access_token: newAccessToken, refresh_token: newRefreshToken }
+  }
+
+  async changePassword(data: ChangePasswordDTO): Promise<void> {
+    const user = await this.accountService.getById(data.account_id)
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid user')
+    }
+
+    const isPasswordValid = await bcrypt.compare(data.password, user.password)
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid password')
+    }
+
+    const newPasswordHash = await bcrypt.hash(data.new_password, 10)
+    await this.accountService.update(user.id, {
+      password: newPasswordHash,
+      refresh_token: null
+    })
+  }
+
+  async register(data: RegisterDTO): Promise<ResponseAccountDTO & { access_token: string; refresh_token: string }> {
+    delete data.password_confirmation
+    data.password = await bcrypt.hash(data.password, 10)
+    const user = await this.accountService.create(data)
+
+    const new_token_version = user.token_version + 1
+
+    const access_token = this.generateAccessToken(user, new_token_version)
+    const refresh_token = this.generateRefreshToken(user, new_token_version)
+
+    await this.accountService.update(user.id, {
+      refresh_token,
+      token_version: new_token_version
+    })
+
+    return { ...user, access_token, refresh_token }
+  }
+
+  async logout(refresh_token: string): Promise<void> {
+    const payload = this.jwtService.decode(refresh_token) as JwtRefreshTokenPayload
+
+    if (payload) {
+      await this.accountService.update(payload.uid, {
+        refresh_token: null,
+        token_version: payload.token_version + 1
       })
-
-      return {
-        token: registerResponse.idToken,
-        ...account
-      }
-    } catch (error: Error | any) {
-      this.logger.error('[register] ' + error)
-
-      throw error
     }
   }
 
-  async registerWithGoogle(user: GoogleAccountDTO, is_provider_anonymous: boolean): Promise<ResponseAccountDTO> {
-    try {
-      if (!user) throw new UnauthorizedException('User not found')
-
-      if (is_provider_anonymous === undefined) {
-        throw new UnauthorizedException('Missing required fields: is_provider_anonymous')
-      }
-
-      const accountExist = await this.accountService.verifyIfEmailExists(user.email)
-
-      if (accountExist) throw new UnauthorizedException('User email already exists in database')
-
-      const [first_name, last_name] = splitUserName(user?.name)
-
-      delete user.auth_time
-      delete user.exp_time
-
-      return this.accountService.create({
-        ...user,
-        first_name,
-        last_name,
-        is_active: true,
-        is_provider_anonymous,
-        lead_origin: 'rennan-blog-api'
-      })
-    } catch (error) {
-      throw this.handleTokenUnauthorizedError(error)
+  async getMe(account: ResponseAccountDTO): Promise<ResponseAccountDTO> {
+    if (!account) {
+      throw new UnauthorizedException('User not recognized')
     }
+
+    return parseAccount(account)
   }
 
-  async login(email: string, password: string): Promise<ResponseAccountDTO> {
-    try {
-      const response = await this.firebaseService.login(email, password)
-
-      if (!response?.idToken) throw new UnauthorizedException('Invalid credentials')
-
-      const user = await this.firebaseService.getUserByToken(response.idToken)
-
-      if (!user) throw new UnauthorizedException('User not found')
-
-      const userAccount = await this.accountService.getByEmail(user.email)
-
-      if (!userAccount) throw new UnauthorizedException('User not found in database')
-
-      await this.accountService.createAccountEvent(userAccount.id, EventType.LOGIN, 'Login with email/password')
-
-      return {
-        token: response.idToken,
-        ...userAccount
-      }
-    } catch (error) {
-      this.logger.error('[login] ' + error, error)
-
-      await this.createUnauthorizedAccountEventByEmail(error, email, 'Login failed (Email/Password)')
-
-      throw error instanceof Error
-        ? this.handleTokenUnauthorizedError(error)
-        : new Error('Error logging with email/password')
+  async resetPassword(data: ResetPasswordDTO): Promise<void> {
+    if (data.password !== data.password_confirmation) {
+      throw new UnauthorizedException('Password confirmation does not match')
     }
-  }
 
-  async loginWithLink(email: string, base_url: string): Promise<{ url: string }> {
-    try {
-      const { url } = await this.firebaseService.loginWithLink(email, base_url)
+    const payload = this.jwtService.decode(data.token) as JwtAccessTokenPayload
 
-      await this.accountService.createAccountEventByEmail(email, EventType.LOGIN, 'Login with link')
-
-      return { url }
-    } catch (error) {
-      this.logger.error('[login] ' + error, error)
-
-      await this.createUnauthorizedAccountEventByEmail(error, email, 'Login failed (Link)')
-
-      throw error instanceof Error ? this.handleTokenUnauthorizedError(error) : new Error('Error logging with link')
+    if (!payload || payload.uid !== data.account_id) {
+      throw new UnauthorizedException('Invalid or expired token')
     }
-  }
 
-  async loginWithGoogle(user: GoogleAccountDTO): Promise<ResponseAccountDTO> {
-    let account_id = null
+    const user = await this.accountService.getById(data.account_id)
 
-    try {
-      const accountData = await this.accountService.getByEmail(user.email)
-      account_id = accountData.id
-
-      await this.accountService.createAccountEvent(account_id, EventType.LOGIN, 'Login with Google')
-
-      return accountData
-    } catch (error) {
-      this.logger.error('[login] ' + error, error)
-
-      await this.createUnauthorizedAccountEvent(error, account_id, 'Login failed (Google)')
-
-      throw error instanceof Error ? this.handleTokenUnauthorizedError(error) : new Error('Error logging with google')
+    if (!user) {
+      throw new UnauthorizedException('Invalid user')
     }
-  }
 
-  async getAccountData(user: GoogleAccountDTO): Promise<ResponseAccountDTO> {
-    try {
-      return this.accountService.getByEmail(user.email)
-    } catch (error) {
-      this.logger.error('[login] ' + error, error)
-
-      throw this.handleTokenUnauthorizedError(error)
-    }
+    const newPasswordHash = await bcrypt.hash(data.password, 10)
+    await this.accountService.update(user.id, {
+      password: newPasswordHash,
+      refresh_token: null,
+      token_version: user.token_version + 1
+    })
   }
 
   async verifyIfEmailExists(email: string): Promise<boolean> {
-    try {
-      return this.accountService.verifyIfEmailExists(email)
-    } catch (error) {
-      this.logger.error('[verifyIfEmailExists] ' + error, error)
-
-      throw this.handleTokenUnauthorizedError(error)
-    }
+    return this.accountService.verifyIfEmailExists(email)
   }
 
-  async createUnauthorizedAccountEvent(error: Error, account_id: string, description: string) {
-    try {
-      if (error instanceof UnauthorizedException && account_id) {
-        await this.accountService.createAccountEvent(
-          account_id,
-          EventType.LOGIN_FAILED,
-          `${description}: ${error.message || error.toString()}`
-        )
-      }
-    } catch (error) {
-      this.logger.error('[createUnauthorizedAccountEvent] ' + error, error)
-
-      throw this.handleTokenUnauthorizedError(error)
+  private async validateUser(email: string, password: string): Promise<ResponseAccountDTO | null> {
+    const user = await this.accountService.getByEmail(email, true)
+    if (user && (await bcrypt.compare(password, user.password))) {
+      delete user.password
+      return user
     }
+    return null
   }
 
-  async createUnauthorizedAccountEventByEmail(error: Error, account_email: string, description: string) {
-    try {
-      if (error instanceof UnauthorizedException) {
-        const user = await this.accountService.getByEmail(account_email)
-
-        if (user) {
-          await this.accountService.createAccountEvent(
-            user.id,
-            EventType.LOGIN_FAILED,
-            `${description}: ${error.message || error.toString()}`
-          )
-        }
-      }
-    } catch (error) {
-      this.logger.error('[createUnauthorizedAccountEventByEmail] ' + error, error)
-
-      throw this.handleTokenUnauthorizedError(error)
+  private generateAccessToken(user: Partial<Account>, token_version: number): string {
+    const payload: JwtAccessTokenPayload = {
+      email: user.email,
+      uid: user.id,
+      is_admin: user.is_admin,
+      token_version: token_version
     }
+
+    return this.jwtService.sign(payload, { expiresIn: '24h' })
   }
 
-  handleTokenUnauthorizedError(error: any) {
-    // this.logger.error('[handleTokenUnauthorizedError] ' + error, error)
+  private generateRefreshToken(user: Partial<Account>, token_version: number): string {
+    const payload: JwtRefreshTokenPayload = {
+      email: user.email,
+      uid: user.id,
+      is_admin: user.is_admin,
+      token_version: token_version
+    }
 
-    return new HttpException(
-      {
-        status: HttpStatus.UNAUTHORIZED,
-        error: 'Invalid token',
-        server: error.message
-      },
-      HttpStatus.UNAUTHORIZED,
-      {
-        cause: error
-      }
-    )
+    return this.jwtService.sign(payload, { expiresIn: '7d' })
   }
 }

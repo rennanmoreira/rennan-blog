@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger'
+import { ApiResponse, ApiQuery } from '@nestjs/swagger'
 import {
   CreateBlogPostDTO,
   UpdateBlogPostDTO,
@@ -12,19 +12,18 @@ import { BlogPostService } from '@blog-posts/blog-post.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('blog-posts')
-@ApiBearerAuth()
 export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
-  //  @Post()
-  //  @ApiResponse({
-  //    status: 201,
-  //    description: 'BlogPost created',
-  //    type: ResponseBlogPostDTO,
-  //  })
-  //  async create(@Body() data: CreateBlogPostDTO): Promise<ResponseBlogPostDTO> {
-  //    return this.blogPostService.create(data);
-  //  }
+  @Post()
+  @ApiResponse({
+    status: 201,
+    description: 'BlogPost created',
+    type: ResponseBlogPostDTO
+  })
+  async create(@Body() data: CreateBlogPostDTO): Promise<ResponseBlogPostDTO> {
+    return this.blogPostService.create(data)
+  }
 
   @Get()
   @ApiResponse({
@@ -55,25 +54,25 @@ export class BlogPostController {
     return this.blogPostService.getById(id)
   }
 
-  //  @Put(':blog_post_id')
-  //  @ApiResponse({
-  //    status: 200,
-  //    description: 'BlogPost updated',
-  //    type: ResponseBlogPostDTO,
-  //  })
-  //  async update(
-  //    @Param('blog_post_id', ParseIntPipe) id: bigint,
-  //    @Body() data: UpdateBlogPostDTO,
-  //  ): Promise<ResponseBlogPostDTO> {
-  //    return this.blogPostService.update(id, data);
-  //  }
+  @Put(':blog_post_id')
+  @ApiResponse({
+    status: 200,
+    description: 'BlogPost updated',
+    type: ResponseBlogPostDTO
+  })
+  async update(
+    @Param('blog_post_id', ParseIntPipe) id: bigint,
+    @Body() data: UpdateBlogPostDTO
+  ): Promise<ResponseBlogPostDTO> {
+    return this.blogPostService.update(id, data)
+  }
 
-  //  @Delete(':blog_post_id')
-  //  @ApiResponse({
-  //    status: 200,
-  //    description: 'BlogPost soft deleted',
-  //  })
-  //  async delete(@Param('blog_post_id', ParseIntPipe) id: bigint): Promise<ResponseBlogPostDTO> {
-  //    return this.blogPostService.delete(id);
-  //  }
+  @Delete(':blog_post_id')
+  @ApiResponse({
+    status: 200,
+    description: 'BlogPost soft deleted'
+  })
+  async delete(@Param('blog_post_id', ParseIntPipe) id: bigint): Promise<ResponseBlogPostDTO> {
+    return this.blogPostService.delete(id)
+  }
 }

@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { ResponseMetaDTO } from '@utils/dtos/pagination.dto'
-import { IsBoolean, IsDate, IsEnum, IsNumber, IsOptional, IsString, IsJSON } from 'class-validator'
-import { JsonValue } from '@prisma/client/runtime/library'
+import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator'
+import { ResponseAccountDTO } from '../accounts/account.dto'
 
 export class CreateBlogPostDTO {
   @ApiProperty({
@@ -213,10 +213,17 @@ export class ResponseBlogPostDTO extends CreateBlogPostDTO {
   @ApiProperty({
     example: 1,
     description: 'BlogPost id',
-    type: BigInt
+    type: Number
   })
   @IsNumber()
-  id: bigint
+  id: number
+
+  @ApiPropertyOptional({
+    type: ResponseAccountDTO,
+    description: 'Author of the Post'
+  })
+  @IsOptional()
+  author?: ResponseAccountDTO
 
   @ApiProperty({
     example: '2021-09-01T00:00:00.000Z',

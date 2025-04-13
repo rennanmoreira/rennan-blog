@@ -1,19 +1,20 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Reflector, APP_GUARD } from '@nestjs/core'
 import { Request } from 'express'
-import { FirebaseService } from '../firebase/firebase.service'
 import { ORIGIN, IS_CLIENT_API_KEY_ENABLED, IS_PRODUCTION, APP_NAME } from 'src/helpers/environment.helper'
 import { AccountService } from 'src/modules/accounts/account.service'
 import { ResponseAccountDTO } from 'src/modules/accounts/account.dto'
+import { JwtService } from '@nestjs/jwt'
+import { JwtAccessTokenPayload } from './auth.dto'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name) //
 
   constructor(
+    private jwtService: JwtService,
     private reflector: Reflector,
-    private accountService: AccountService,
-    private firebaseService: FirebaseService
+    private accountService: AccountService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -47,22 +48,28 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid user token! Missing token header')
       }
 
-      const decodedToken = await this.firebaseService.getDecodedToken(token)
-      const user = await this.firebaseService.getUserByUid(decodedToken.uid)
+      const payload = await this.jwtService.verifyAsync<JwtAccessTokenPayload>(token, {
+        secret: process.env.JWT_SECRET
+      })
+      const user = await this.accountService.getById(payload.uid)
+      request['user'] = user
 
-      request['user'] = {
-        name: user.displayName || '',
-        email: user.email || null,
-        phone: user.phoneNumber || null,
-        photo_url: user.photoURL || null,
-        auth_time: decodedToken.auth_time,
-        exp_time: decodedToken.exp,
-        is_email_verified: user.emailVerified || false,
-        provider: user.providerData[0].providerId,
-        provider_aud: decodedToken.aud,
-        provider_account_id: user.uid,
-        provider_identity_id: user.providerData[0].uid
-      }
+      // const decodedToken = await this.firebaseService.getDecodedToken(token)
+      // const user = await this.firebaseService.getUserByUid(decodedToken.uid)
+
+      // request['user'] = {
+      //   name: user.displayName || '',
+      //   email: user.email || null,
+      //   phone: user.phoneNumber || null,
+      //   photo_url: user.photoURL || null,
+      //   auth_time: decodedToken.auth_time,
+      //   exp_time: decodedToken.exp,
+      //   is_email_verified: user.emailVerified || false,
+      //   provider: user.providerData[0].providerId,
+      //   provider_aud: decodedToken.aud,
+      //   provider_account_id: user.uid,
+      //   provider_identity_id: user.providerData[0].uid
+      // }
 
       // 5. Validate if user has route permission
       const roles = this.reflector.getAllAndOverride<string[]>('roles', [context.getHandler(), context.getClass()])
@@ -72,9 +79,10 @@ export class AuthGuard implements CanActivate {
 
         if (user.email) {
           account = await this.accountService.getByEmail(user.email)
-        } else if (user.uid) {
-          account = await this.accountService.getByProviderAccountId(user.uid)
         }
+        // else if (user.uid) {
+        //   account = await this.accountService.getByProviderAccountId(user.uid)
+        // }
 
         if (!account) {
           throw new UnauthorizedException('User not found in database to validate roles')

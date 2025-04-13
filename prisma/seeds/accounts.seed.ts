@@ -1,25 +1,20 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
-// Comestível, Dermatológico, Enteral, Flor, Fumado, Inalação, Intragástrica, Intramuscular, Intraperitoneal, Intravenoso, Oral, Oral, PEG, PEG, Retal, Intravaginal, Sonda orogástrica, Subcutâneo, Sublingual, Tópico, Vaginal, Vaporizado, Outros
 const ACCOUNTS = [
   {
     email: 'user@test.com',
+    password: '123456',
     is_email_verified: true,
     is_active: true,
     is_admin: true,
     is_moderator: true,
-    is_provider_anonymous: false,
     name: 'User Test',
     first_name: 'User',
     last_name: 'Test',
     lead_origin: 'generated-on-seed',
     photo_url: 'https://example.com/photo.jpg',
-    birth_date: '2025-01-01T00:00:00.000Z',
-    provider: 'provider-example',
-    provider_aud: 'provider-aud-example',
-    provider_account_id: 'provider-user-id-example',
-    provider_identity_id: 'provider-identity-id-example'
+    birth_date: '2025-01-01T00:00:00.000Z'
   }
 ]
 
