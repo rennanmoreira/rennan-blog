@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiResponse, ApiQuery } from '@nestjs/swagger'
+import { ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger'
 import {
   CreateBlogPostDTO,
   UpdateBlogPostDTO,
@@ -9,6 +9,7 @@ import {
   SortByBlogPostDTO
 } from '@blog-posts/blog-post.dto'
 import { BlogPostService } from '@blog-posts/blog-post.service'
+import { Public } from 'src/decorators/public.decorator'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('blog-posts')
@@ -16,6 +17,7 @@ export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
   @Post()
+  @ApiBearerAuth()
   @ApiResponse({
     status: 201,
     description: 'BlogPost created',
@@ -26,6 +28,7 @@ export class BlogPostController {
   }
 
   @Get()
+  @Public()
   @ApiResponse({
     status: 200,
     description: 'Get all blogPosts',
@@ -45,6 +48,7 @@ export class BlogPostController {
   }
 
   @Get(':blog_post_id')
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Get blogPost by id',
@@ -55,6 +59,7 @@ export class BlogPostController {
   }
 
   @Put(':blog_post_id')
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'BlogPost updated',
@@ -68,6 +73,7 @@ export class BlogPostController {
   }
 
   @Delete(':blog_post_id')
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'BlogPost soft deleted'

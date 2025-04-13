@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post, Res, Req, Session, Version } from '@nestjs/common'
 import { ChangePasswordDTO, EmailDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from './auth.dto'
 import { AuthService } from './auth.service'
-import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ErrorResponse } from '@utils/dtos/error-response.dto'
 import { ResponseAccountDTO } from '@accounts/account.dto'
 import { Request, Response } from 'express'
@@ -42,30 +42,35 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiBearerAuth()
   @HttpCode(200)
   async logout(@Body('refresh_token') refresh_token: string): Promise<void> {
     await this.authService.logout(refresh_token)
   }
 
   @Get('me')
+  @ApiBearerAuth()
   @HttpCode(200)
   async getMe(@Req() request: Request): Promise<ResponseAccountDTO> {
     return this.authService.getMe(request['user'])
   }
 
   @Post('refresh-token')
+  @ApiBearerAuth()
   @HttpCode(201)
   async refresh(@Body('refresh_token') refresh_token: string): Promise<{ access_token: string }> {
     return this.authService.refreshToken(refresh_token)
   }
 
   @Post('reset-password')
+  @ApiBearerAuth()
   @HttpCode(200)
   async resetPassword(@Body() data: ResetPasswordDTO): Promise<void> {
     await this.authService.resetPassword(data)
   }
 
   @Post('change-password')
+  @ApiBearerAuth()
   @HttpCode(200)
   async changePassword(@Body() data: ChangePasswordDTO): Promise<void> {
     await this.authService.changePassword(data)

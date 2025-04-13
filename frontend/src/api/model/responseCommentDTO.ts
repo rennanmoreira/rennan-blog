@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ResponseAccountDTO } from './responseAccountDTO'
+import type { ResponseBlogPostDTO } from './responseBlogPostDTO'
 
 export interface ResponseCommentDTO {
   /** Post id of the Comment */
@@ -18,6 +19,8 @@ export interface ResponseCommentDTO {
   id: number
   /** Author of the Comment */
   account?: ResponseAccountDTO
+  /** Post of the Comment */
+  post?: ResponseBlogPostDTO
   /** Date of creation */
   created_at: string
   /** Date of last update */

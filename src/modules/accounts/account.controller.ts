@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiResponse, ApiQuery } from '@nestjs/swagger'
+import { ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger'
 import {
   CreateAccountDTO,
   UpdateAccountDTO,
@@ -12,6 +12,7 @@ import { AccountService } from '@accounts/account.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('accounts')
+@ApiBearerAuth()
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
@@ -69,12 +70,12 @@ export class AccountController {
     return this.accountService.update(id, data)
   }
 
-  //  @Delete(':account_id')
-  //  @ApiResponse({
-  //    status: 200,
-  //    description: 'Account soft deleted',
-  //  })
-  //  async delete(@Param('account_id', ParseUUIDPipe) id: string): Promise<ResponseAccountDTO> {
-  //    return this.accountService.delete(id);
-  //  }
+  @Delete(':account_id')
+  @ApiResponse({
+    status: 200,
+    description: 'Account soft deleted'
+  })
+  async delete(@Param('account_id', ParseUUIDPipe) id: string): Promise<ResponseAccountDTO> {
+    return this.accountService.delete(id)
+  }
 }

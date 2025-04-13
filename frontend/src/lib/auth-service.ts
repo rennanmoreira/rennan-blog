@@ -79,10 +79,19 @@ export const useAuth = () => {
     }
   }
 
+  const refreshUserData = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: getAuthControllerGetMeQueryKey() })
+    } catch (error) {
+      console.error('Error refreshing user data:', error)
+    }
+  }
+
   return {
     login,
     register,
     logout,
+    refreshUserData,
     user,
     isLoadingUser
   }

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiResponse, ApiQuery } from '@nestjs/swagger'
+import { ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger'
 import {
   CreateCommentDTO,
   UpdateCommentDTO,
@@ -12,6 +12,7 @@ import { CommentService } from '@comments/comment.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('comments')
+@ApiBearerAuth()
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 

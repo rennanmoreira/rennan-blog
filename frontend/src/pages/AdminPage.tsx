@@ -7,13 +7,29 @@ import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PlusCircle, Edit, Trash, Upload, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { useNavigate } from 'react-router-dom'
-import { formatDistanceToNow } from 'date-fns'
-import { useBlogPostControllerCreate, useBlogPostControllerDelete, useBlogPostControllerGetAll, useBlogPostControllerUpdate } from '@/api/generated/blog-post/blog-post'
-import type { CreateBlogPostDTO, ResponseBlogPostDTO, ResponseBlogPostListDTO, ResponseCommentListDTO } from '../api/model'
-import { useCommentControllerGetAll, useCommentControllerUpdate, useCommentControllerDelete } from '@/api/generated/comment/comment'
+import { Link, useNavigate } from 'react-router-dom'
+import { formatDistanceToNow, format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import {
+  useBlogPostControllerCreate,
+  useBlogPostControllerDelete,
+  useBlogPostControllerGetAll,
+  useBlogPostControllerUpdate
+} from '@/api/generated/blog-post/blog-post'
+import type {
+  CreateBlogPostDTO,
+  ResponseBlogPostDTO,
+  ResponseBlogPostListDTO,
+  ResponseCommentListDTO
+} from '../api/model'
+import {
+  useCommentControllerGetAll,
+  useCommentControllerUpdate,
+  useCommentControllerDelete
+} from '@/api/generated/comment/comment'
 import { useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/lib/auth-service'
+import DeleteDialog from '@/components/DeleteDialog'
 
 const AdminPage = () => {
   const navigate = useNavigate()
@@ -26,18 +42,26 @@ const AdminPage = () => {
   const [content, setContent] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [editingPost, setEditingPost] = useState<number | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'post' | 'comment'; id: number } | null>(null)
 
   // Fetch posts
-  const { data: posts, isLoading: isLoadingPosts } = useBlogPostControllerGetAll() as { data: ResponseBlogPostListDTO, isLoading: boolean }
+  const { data: posts, isLoading: isLoadingPosts } = useBlogPostControllerGetAll() as {
+    data: ResponseBlogPostListDTO
+    isLoading: boolean
+  }
 
   // Fetch comments
-  const { data: comments, isLoading: isLoadingComments } = useCommentControllerGetAll() as { data: ResponseCommentListDTO, isLoading: boolean }
+  const { data: comments, isLoading: isLoadingComments } = useCommentControllerGetAll() as {
+    data: ResponseCommentListDTO
+    isLoading: boolean
+  }
 
   // Post mutations
   const createPost = useBlogPostControllerCreate({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['blogPost'] })
+        queryClient.invalidateQueries({ queryKey: ['/blog-posts'] })
         toast({ title: 'Success', description: 'Post created successfully' })
         resetForm()
       },
@@ -50,7 +74,7 @@ const AdminPage = () => {
   const updatePost = useBlogPostControllerUpdate({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['blogPost'] })
+        queryClient.invalidateQueries({ queryKey: ['/blog-posts'] })
         toast({ title: 'Success', description: 'Post updated successfully' })
         setEditingPost(null)
         resetForm()
@@ -64,7 +88,7 @@ const AdminPage = () => {
   const deletePost = useBlogPostControllerDelete({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['blogPost'] })
+        queryClient.invalidateQueries({ queryKey: ['/blog-posts'] })
         toast({ title: 'Success', description: 'Post deleted successfully' })
       },
       onError: () => {
@@ -77,7 +101,7 @@ const AdminPage = () => {
   const deleteComment = useCommentControllerDelete({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['comment'] })
+        queryClient.invalidateQueries({ queryKey: ['/comments'] })
         toast({ title: 'Success', description: 'Comment deleted successfully' })
       },
       onError: () => {
@@ -118,28 +142,56 @@ const AdminPage = () => {
   }
 
   const handleEditPost = (post: ResponseBlogPostDTO) => {
-    setEditingPost(post.id)
-    setTitle(post.title)
-    setContent(post.content)
-    setExcerpt(post.excerpt)
+    navigate(`/posts/${post.id}/edit`)
   }
 
   const handleDeletePost = (postId: number) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      deletePost.mutate({ blogPostId: postId })
-    }
+    setItemToDelete({ type: 'post', id: postId })
+    setDeleteDialogOpen(true)
   }
 
   const handleDeleteComment = (commentId: number) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      deleteComment.mutate({ commentId })
+    setItemToDelete({ type: 'comment', id: commentId })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return
+
+    try {
+      if (itemToDelete.type === 'post') {
+        await deletePost.mutateAsync({ blogPostId: itemToDelete.id })
+        await queryClient.invalidateQueries({
+          queryKey: ['/blog-posts']
+        })
+      } else {
+        await deleteComment.mutateAsync({ commentId: itemToDelete.id })
+        await queryClient.invalidateQueries({
+          queryKey: ['/comments']
+        })
+      }
+
+      setDeleteDialogOpen(false)
+      setItemToDelete(null)
+    } catch (error) {
+      console.error('Error during deletion:', error)
     }
+  }
+
+  const handlePostClick = (postId: string) => {
+    navigate(`/posts/${postId}`)
+  }
+
+  const handleCommentClick = (postId: string, commentId: string) => {
+    navigate(`/posts/${postId}#comment-${commentId}`, {
+      preventScrollReset: true
+    })
   }
 
   return (
     <BlogLayout>
       <div className="blog-container py-8">
-        <h1 className="blog-title mb-8">Admin Dashboard</h1>
+        <h1 className="blog-title mb-8">Welcome {user?.name.split(' ')[0] || 'Guest'}</h1>
 
         <Tabs defaultValue="posts">
           <TabsList className="mb-8">
@@ -162,10 +214,10 @@ const AdminPage = () => {
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left p-4 font-medium">Title</th>
-                      <th className="text-left p-4 font-medium">Author</th>
-                      <th className="text-left p-4 font-medium">Date</th>
-                      <th className="text-left p-4 font-medium">Actions</th>
+                      <th className="text-left p-3 font-medium max-w-[300px]">Title</th>
+                      <th className="text-left p-3 font-medium w-[130px] min-w-[130px]">Author</th>
+                      <th className="text-left p-3 font-medium w-[165px] min-w-[165px]">Date</th>
+                      <th className="text-left p-3 font-medium w-[100px] min-w-[100px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -175,32 +227,45 @@ const AdminPage = () => {
                           <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                         </td>
                       </tr>
-                    ) : posts?.data?.map((post) => (
-                      <tr key={post.id} className="border-t border-border">
-                        <td className="p-4">{post.title}</td>
-                        <td className="p-4">{post.author?.name || 'Unknown'}</td>
-                        <td className="p-4">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</td>
-                        <td className="p-4">
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditPost(post)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                              onClick={() => handleDeletePost(post.id)}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    ) : (
+                      posts?.data?.map((post) => (
+                        <tr
+                          key={post.id}
+                          className="border-t border-border cursor-pointer hover:bg-muted/50"
+                          onClick={() => handlePostClick(post.id.toString())}>
+                          <td className="p-3 max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">
+                            {post.title}
+                          </td>
+                          <td className="p-3 w-[130px] min-w-[130px]">{post.author?.name || 'Unknown'}</td>
+                          <td className="p-3 w-[165px] min-w-[165px]">
+                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                          </td>
+                          <td className="p-3 w-[100px] min-w-[100px]">
+                            <div className="flex gap-2 ">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditPost(post)
+                                }}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeletePost(post.id)
+                                }}>
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -281,17 +346,17 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="comments">
-            <h2 className="font-serif font-bold text-2xl mb-6">Manage Comments</h2>
-            
+            <h2 className="font-serif font-bold text-2xl mb-7 pt-1">Manage Comments</h2>
+
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left p-4 font-medium">Content</th>
-                    <th className="text-left p-4 font-medium">Post</th>
-                    <th className="text-left p-4 font-medium">Author</th>
-                    <th className="text-left p-4 font-medium">Date</th>
-                    <th className="text-left p-4 font-medium">Actions</th>
+                    <th className="text-left p-3 font-medium max-w-[150px]">Content</th>
+                    <th className="text-left p-3 font-medium max-w-[150px]">Post</th>
+                    <th className="text-left p-3 font-medium w-[130px] min-w-[130px]">Author</th>
+                    <th className="text-left p-3 font-medium w-[165px] min-w-[165px]">Date</th>
+                    <th className="text-left p-3 font-medium w-[100px] min-w-[100px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -301,32 +366,53 @@ const AdminPage = () => {
                         <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                       </td>
                     </tr>
-                  ) : comments?.data?.map((comment) => (
-                    <tr key={comment.id} className="border-t border-border">
-                      <td className="p-4">{comment.content}</td>
-                      <td className="p-4">Unknown</td>
-                      <td className="p-4">{comment.account?.name || 'Unknown'}</td>
-                      <td className="p-4">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</td>
-                      <td className="p-4">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  ) : (
+                    comments?.data?.map((comment) => (
+                      <tr
+                        key={comment.id}
+                        className="border-t border-border cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleCommentClick(comment.post?.id.toString(), comment.id.toString())}>
+                        <td className="p-3  max-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">
+                          {comment.content}
+                        </td>
+                        <td className="p-3 max-w-[150px] whitespace-nowrap overflow-hidden text-ellipsis">
+                          {comment.post?.title || 'Unknown'}
+                        </td>
+                        <td className="p-3 w-[130px] min-w-[130px]">{comment.account?.name || 'Unknown'}</td>
+                        <td className="p-3 w-[165px] min-w-[165px]">
+                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                        </td>
+                        <td className="p-3 w-[100px] min-w-[100px]">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteComment(comment.id)
+                              }}>
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </TabsContent>
         </Tabs>
       </div>
+      <DeleteDialog
+        title={`Delete ${itemToDelete?.type === 'post' ? 'Post' : 'Comment'}`}
+        description={`Are you sure you want to delete this ${itemToDelete?.type}? This action cannot be undone.`}
+        isOpen={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deletePost.isPending || deleteComment.isPending}
+      />
     </BlogLayout>
   )
 }

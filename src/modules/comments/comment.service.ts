@@ -18,10 +18,16 @@ export class CommentService {
 
   async create(data: CreateCommentDTO): Promise<ResponseCommentDTO> {
     try {
+      const post = { connect: { id: data.post_id } }
+      const account = { connect: { id: data.account_id } }
+
+      delete data.post_id
+      delete data.account_id
+
       const comment = await this.commentRepository.create({
         ...data,
-        post: { connect: { id: data.post_id } },
-        account: { connect: { id: data.account_id } }
+        post,
+        account
       })
 
       return parseComment(comment)
@@ -103,7 +109,7 @@ export class CommentService {
 
   async delete(comment_id: bigint): Promise<ResponseCommentDTO> {
     try {
-      return await this.commentRepository.delete(comment_id)
+      return parseComment(await this.commentRepository.delete(comment_id))
     } catch (error: Error | any) {
       if (error.code === 'P2025') {
         throw new NotFoundException('Comment not found')

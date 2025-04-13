@@ -6,7 +6,7 @@ import { MessageSquare, User, Loader2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useCommentControllerCreate } from '@/api/generated/comment/comment'
 import { ResponseCommentDTO } from '@/api/model'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/lib/auth-service'
 import { useQueryClient } from '@tanstack/react-query'
 
 interface BlogCommentsProps {
@@ -34,7 +34,6 @@ const BlogComments: React.FC<BlogCommentsProps> = ({ postId, comments }) => {
     }
   })
   const queryClient = useQueryClient()
-  const [postComments, setPostComments] = useState<ResponseCommentDTO[]>(comments)
   const { toast } = useToast()
   const { user } = useAuth()
 
@@ -62,8 +61,8 @@ const BlogComments: React.FC<BlogCommentsProps> = ({ postId, comments }) => {
 
       setNewComment('')
 
-      // Invalidate comments query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['comment'] })
+      // Invalidate comments query for this specific post
+      queryClient.invalidateQueries({ queryKey: ['comment', 'getAll', { post_id: Number(postId) }] })
     } catch (error) {
       console.error('Error submitting comment:', error)
       toast({
@@ -79,7 +78,7 @@ const BlogComments: React.FC<BlogCommentsProps> = ({ postId, comments }) => {
       <div className="border-t border-border pt-8">
         <h3 className="font-serif font-bold text-2xl mb-6 flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
-          Comments ({postComments.length})
+          Comments ({comments.length})
         </h3>
 
         {/* Comment form */}
@@ -109,52 +108,34 @@ const BlogComments: React.FC<BlogCommentsProps> = ({ postId, comments }) => {
         </form>
 
         {/* Comments list */}
-        {postComments.length > 0 ? (
-          <div className="space-y-6">
-            {postComments.map((comment, index) =>
-              comment.id ? (
-                <div key={comment.id} className="border-b border-border pb-6 last:border-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-muted rounded-full p-1">
-                      {comment.account?.photo_url ? (
-                        <img
-                          src={comment.account.photo_url}
-                          alt={comment.account.name}
-                          className="h-8 w-8 rounded-full"
-                        />
-                      ) : (
-                        <User className="h-6 w-6 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium">{comment.account?.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-foreground ml-11">{comment.content}</div>
-                </div>
-              ) : (
-                <div key={`temp-${index}`} className="border-b border-border pb-6 last:border-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-muted rounded-full p-1">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{user?.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-foreground ml-11">{newComment}</div>
-                </div>
-              )
-            )}
-          </div>
+        {comments.length === 0 ? (
+          <p className="text-muted-foreground">No comments yet. Be the first to comment!</p>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">Be the first to leave a comment!</div>
+          <div className="space-y-6">
+            {comments.map((comment) => (
+              <div
+                key={comment.id}
+                id={'comment-' + comment.id.toString()}
+                className="border-b border-border pb-6 last:border-0">
+                <div className="flex items-center gap-3 mb-2">
+                  {comment.account?.photo_url ? (
+                    <img src={comment.account.photo_url} alt={comment.account.name} className="h-8 w-8 rounded-full" />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                      <User className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium">{comment.account?.name || 'Anonymous'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-foreground">{comment.content}</p>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

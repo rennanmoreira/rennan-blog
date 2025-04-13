@@ -64,7 +64,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
 
   // Navigate to post and close modal
   const handlePostClick = (postId: number) => {
-    navigate(`/post/${postId}`)
+    navigate(`/posts/${postId}`)
     onClose()
   }
 
@@ -112,9 +112,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   onClick={() => handlePostClick(post.id)}>
                   <h3 className="font-medium text-base mb-1">{highlightMatchingText(post.title, searchQuery)}</h3>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {highlightMatchingText(post.excerpt || post.content.substring(0, 120), searchQuery)}
+                    {highlightMatchingText(post?.excerpt || post?.content?.substring(0, 120), searchQuery)}
                   </p>
-                  <div className="text-xs text-muted-foreground mt-1">By {post.author.name}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    By {highlightMatchingText(post?.author?.name, searchQuery)}
+                  </div>
                 </div>
               ))}
             </div>

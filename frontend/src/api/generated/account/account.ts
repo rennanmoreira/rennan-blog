@@ -288,3 +288,57 @@ export const useAccountControllerUpdate = <TError = ErrorType<unknown>, TContext
 
   return useMutation(mutationOptions, queryClient)
 }
+export const accountControllerDelete = (accountId: string) => {
+  return api<void>({ url: `/accounts/${accountId}`, method: 'DELETE' })
+}
+
+export const getAccountControllerDeleteMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof accountControllerDelete>>,
+    TError,
+    { accountId: string },
+    TContext
+  >
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof accountControllerDelete>>,
+  TError,
+  { accountId: string },
+  TContext
+> => {
+  const mutationKey = ['accountControllerDelete']
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof accountControllerDelete>>, { accountId: string }> = (
+    props
+  ) => {
+    const { accountId } = props ?? {}
+
+    return accountControllerDelete(accountId)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AccountControllerDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof accountControllerDelete>>>
+
+export type AccountControllerDeleteMutationError = ErrorType<unknown>
+
+export const useAccountControllerDelete = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof accountControllerDelete>>,
+      TError,
+      { accountId: string },
+      TContext
+    >
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof accountControllerDelete>>, TError, { accountId: string }, TContext> => {
+  const mutationOptions = getAccountControllerDeleteMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}

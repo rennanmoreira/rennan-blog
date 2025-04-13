@@ -21,7 +21,10 @@ export class CommentRepository {
   }
 
   async findMany(filter: Prisma.CommentFindManyArgs): Promise<{ data: CommentWithRelations[]; count: number }> {
-    return (await this.prisma.comment.findMany(filter)) as unknown as FindManyWithCount<CommentWithRelations>
+    return (await this.prisma.comment.findMany({
+      ...filter,
+      include: { post: true, account: true }
+    })) as unknown as FindManyWithCount<CommentWithRelations>
   }
 
   async findUnique(filter: Prisma.CommentFindUniqueArgs): Promise<CommentWithRelations> {

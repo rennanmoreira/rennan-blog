@@ -69,7 +69,7 @@ const CreatePostPage = () => {
       })
 
       // Navigate to the new post
-      navigate(`/post/${post.id}`)
+      navigate(`/posts/${post.id}`)
     } catch (error) {
       console.error('Error creating post:', error)
       toast({
@@ -98,9 +98,9 @@ const CreatePostPage = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/admin')}
           className="mb-6 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Posts
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to manage
         </Button>
 
         <h1 className="blog-title mb-8">Create New Post</h1>

@@ -12,7 +12,7 @@ import { ResponseAccountDTO } from '@/api/model'
 import { accountControllerGetById, accountControllerUpdate } from '@/api/generated/account/account'
 
 const ProfilePage = () => {
-  const { user, isLoadingUser: authLoading } = useAuth()
+  const { user, isLoadingUser: authLoading, refreshUserData } = useAuth()
   const [profile, setProfile] = useState<ResponseAccountDTO | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [name, setName] = useState('')
@@ -59,6 +59,9 @@ const ProfilePage = () => {
       await accountControllerUpdate(user.id, {
         name
       })
+
+      // Refresh the user data to update the avatar/initials in the top bar
+      await refreshUserData()
 
       toast({
         title: 'Profile updated',

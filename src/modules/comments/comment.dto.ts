@@ -2,15 +2,16 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { ResponseMetaDTO } from '@utils/dtos/pagination.dto'
 import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator'
 import { ResponseAccountDTO } from '../accounts/account.dto'
+import { ResponseBlogPostDTO } from '../blog-posts/blog-post.dto'
 
 export class CreateCommentDTO {
   @ApiProperty({
     example: 'Post id example',
-    type: BigInt,
+    type: Number,
     description: 'Post id of the Comment'
   })
   @IsNumber()
-  post_id: bigint
+  post_id: number
 
   @ApiProperty({
     example: 'Content example',
@@ -109,10 +110,10 @@ export class ResponseCommentDTO extends CreateCommentDTO {
   @ApiProperty({
     example: 1,
     description: 'Comment id',
-    type: BigInt
+    type: Number
   })
   @IsNumber()
-  id: bigint
+  id: number
 
   @ApiPropertyOptional({
     type: ResponseAccountDTO,
@@ -120,6 +121,13 @@ export class ResponseCommentDTO extends CreateCommentDTO {
   })
   @IsOptional()
   account?: ResponseAccountDTO
+
+  @ApiPropertyOptional({
+    type: ResponseBlogPostDTO,
+    description: 'Post of the Comment'
+  })
+  @IsOptional()
+  post?: ResponseBlogPostDTO
 
   @ApiProperty({
     example: '2021-09-01T00:00:00.000Z',

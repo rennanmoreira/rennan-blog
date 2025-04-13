@@ -78,7 +78,7 @@ async function bootstrap() {
       },
       'jwt-auth'
     )
-    .addSecurityRequirements('jwt-auth')
+    // .addSecurityRequirements('jwt-auth')
     .build()
 
   if (IS_SWAGGER_AUTH_ENABLED) {

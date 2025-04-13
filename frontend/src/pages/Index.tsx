@@ -7,10 +7,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-service'
 import { getAllPosts } from '@/services/blogService'
 import { BlogPost } from '@/services/blogService'
+import LoginPromptModal from '@/components/LoginPromptModal'
 
 const Index = () => {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -77,16 +79,22 @@ const Index = () => {
               <div className="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 className="font-serif font-bold text-2xl">Recent Posts</h2>
                 <div className="flex gap-4">
-                  {user && (
-                    <Button
-                      onClick={() => navigate('/create-post')}
-                      className="bg-blog-primary hover:bg-blog-primary/90 text-white">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      New Post
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => {
+                      if (user) {
+                        navigate('/create-post')
+                      } else {
+                        setShowLoginPrompt(true)
+                      }
+                    }}
+                    className="bg-blog-primary hover:bg-blog-primary/90 text-white">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Post
+                  </Button>
+
                   <Button
                     variant="outline"
+                    onClick={() => navigate('/posts')}
                     className="text-blog-primary border-blog-primary/30 hover:bg-blog-primary/5">
                     View All <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
@@ -102,6 +110,7 @@ const Index = () => {
           </>
         )}
       </div>
+      <LoginPromptModal open={showLoginPrompt} onOpenChange={setShowLoginPrompt} />
     </BlogLayout>
   )
 }

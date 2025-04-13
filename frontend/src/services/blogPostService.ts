@@ -65,8 +65,10 @@ export async function searchPosts(query: string): Promise<ResponseBlogPostDTO[]>
     const response = await blogPostControllerGetAll()
     return response.data.filter(
       (post) =>
-        post.title.toLowerCase().includes(query.toLowerCase()) ||
-        post.content.toLowerCase().includes(query.toLowerCase())
+        post?.title?.toLowerCase().includes(query.toLowerCase()) ||
+        post?.content?.toLowerCase().includes(query.toLowerCase()) ||
+        post?.author?.name?.toLowerCase().includes(query.toLowerCase()) ||
+        post?.excerpt?.toLowerCase().includes(query.toLowerCase())
     )
   } catch (error) {
     console.error('Error searching posts:', error)
