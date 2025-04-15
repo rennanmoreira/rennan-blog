@@ -25,7 +25,7 @@ COPY . .
 
 RUN npm run prisma:generate
 
-EXPOSE 3000 9229
+EXPOSE 3000 9229 8080
 
 CMD ["sh", "-c", "chmod +x ./build.sh && ./build.sh"]
 
