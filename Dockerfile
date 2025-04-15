@@ -27,5 +27,6 @@ RUN npm run prisma:generate
 
 EXPOSE 3000 9229 8080
 
-CMD ["sh", "-c", "chmod +x ./build.sh && ./build.sh"]
+# if NODE_ENV is production, run build.sh
+RUN if [ "${NODE_ENV}" = "production" ]; then sh -c "chmod +x ./build.sh && ./build.sh"; fi
 
