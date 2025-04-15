@@ -17,69 +17,27 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node"],
     "paths": {
-      "src/*": [
-        "src/*"
-      ],
-      "@infra/*": [
-        "src/infra/*"
-      ],
-      "@core/*": [
-        "src/core/*"
-      ],
-      "@auth/*": [
-        "src/core/auth/*"
-      ],
-      "@database/*": [
-        "src/core/database/*"
-      ],
-      "@prisma/*": [
-        "src/core/prisma/*"
-      ],
-      "@config/*": [
-        "src/config/*"
-      ],
-      "@enums/*": [
-        "src/enums/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@types": [
-        "src/types",
-        "src/types/*"
-      ],
-      "@decorators/*": [
-        "src/decorators/*"
-      ],
-      "@dtos/*": [
-        "src/utils/dtos/*"
-      ],
-      "@exceptions/*": [
-        "src/utils/exceptions/*"
-      ],
-      "@helpers/*": [
-        "src/helpers/*"
-      ],
-      "@interceptors/*": [
-        "src/utils/interceptors/*"
-      ],
-      "@account-events/*": [
-        "src/modules/account-events/*"
-      ],
-      "@accounts/*": [
-        "src/modules/accounts/*"
-      ],
-      "@blog-posts/*": [
-        "src/modules/blog-posts/*"
-      ],
-      "@comments/*": [
-        "src/modules/comments/*"
-      ]
+      "src/*": ["src/*"],
+      "@infra/*": ["src/infra/*"],
+      "@core/*": ["src/core/*"],
+      "@auth/*": ["src/core/auth/*"],
+      "@database/*": ["src/core/database/*"],
+      "@prisma/*": ["src/core/prisma/*"],
+      "@config/*": ["src/config/*"],
+      "@enums/*": ["src/enums/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types": ["src/types", "src/types/*"],
+      "@decorators/*": ["src/decorators/*"],
+      "@dtos/*": ["src/utils/dtos/*"],
+      "@exceptions/*": ["src/utils/exceptions/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@interceptors/*": ["src/utils/interceptors/*"],
+      "@account-events/*": ["src/modules/account-events/*"],
+      "@accounts/*": ["src/modules/accounts/*"],
+      "@blog-posts/*": ["src/modules/blog-posts/*"],
+      "@comments/*": ["src/modules/comments/*"]
     }
   }
 }
