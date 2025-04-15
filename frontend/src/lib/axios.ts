@@ -1,30 +1,30 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { useAuthStore } from './auth-service';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import { useAuthStore } from './auth-service'
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_BASE_API_URL || 'http://localhost:3000'
 
 export const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   }
-});
+})
 
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      useAuthStore.getState().setToken(null);
+      useAuthStore.getState().setToken(null)
     }
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
+    const token = useAuthStore.getState().token
     if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
