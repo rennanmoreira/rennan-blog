@@ -28,6 +28,6 @@ RUN npm run prisma:generate
 
 EXPOSE 3000 9229 8080
 
-RUN if [ "$NODE_ENV" = "production" ]; then npm run build && npm run start:prod; else echo "Skipping build.sh (NODE_ENV=$NODE_ENV)"; fi
+RUN if [ "$NODE_ENV" = "production" ]; then npm run prisma:deploy && npm run build && npm run start:prod; else echo "Skipping build.sh (NODE_ENV=$NODE_ENV)"; fi
 
 
