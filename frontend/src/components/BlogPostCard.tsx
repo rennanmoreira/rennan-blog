@@ -8,14 +8,40 @@ import { useAuth } from '@/lib/auth-service'
 interface BlogPostCardProps {
   post: BlogPost
   featured?: boolean
+  searchQuery?: string
 }
 
-const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) => {
+const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false, searchQuery }) => {
   const { user } = useAuth()
   const timeAgo = formatDistanceToNow(new Date(post.published_at), { addSuffix: true })
+  let title: string | JSX.Element = post.title
+  let excerpt: string | JSX.Element = post.excerpt
+  let content: string | JSX.Element = post.content
+  let authorName: string | JSX.Element = post.author?.name || ''
 
-  console.log('User:', user)
   const isAuthor = user?.id === post.author?.id
+
+  const highlightMatchingText = (text: string, query: string) => {
+    const parts = text.split(new RegExp(`(${query})`, 'gi'))
+    return parts
+      .map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-100 dark:bg-yellow-900">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )
+      .join('')
+  }
+
+  if (searchQuery) {
+    title = highlightMatchingText(post.title, searchQuery)
+    excerpt = highlightMatchingText(post.excerpt, searchQuery)
+    content = highlightMatchingText(post.content, searchQuery)
+    authorName = post.author?.name ? highlightMatchingText(post.author?.name, searchQuery) : ''
+  }
 
   if (featured) {
     return (
@@ -28,8 +54,11 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
           )}
           <div className="flex flex-col justify-center">
             <h2 className="blog-title text-2xl md:text-3xl mb-3">
-              <Link to={`/posts/${post.id}`} state={featured ? { fromHome: true } : { fromPosts: true }} className="hover:text-blog-primary transition-colors">
-                {post.title}
+              <Link
+                to={`/posts/${post.id}`}
+                state={featured ? { fromHome: true } : { fromPosts: true }}
+                className="hover:text-blog-primary transition-colors">
+                {title}
               </Link>
             </h2>
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
@@ -55,7 +84,10 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
                 Edit Post
               </Link>
             )} */}
-            <Link to={`/posts/${post.id}`} state={featured ? { fromHome: true } : { fromPosts: true }} className="text-blog-primary hover:text-blog-primary/80 font-medium text-sm">
+            <Link
+              to={`/posts/${post.id}`}
+              state={featured ? { fromHome: true } : { fromPosts: true }}
+              className="text-blog-primary hover:text-blog-primary/80 font-medium text-sm">
               Read More →
             </Link>
           </div>
@@ -72,7 +104,10 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) =
         </div>
       )}
       <h3 className="font-serif font-bold text-xl mb-2">
-        <Link to={`/posts/${post.id}`} state={{ fromPosts: true }} className="hover:text-blog-primary transition-colors">
+        <Link
+          to={`/posts/${post.id}`}
+          state={{ fromPosts: true }}
+          className="hover:text-blog-primary transition-colors">
           {post.title}
         </Link>
       </h3>

@@ -135,6 +135,15 @@ export class BlogPostService {
   private buildFilters(filters: FilterBlogPostDTO): Prisma.BlogPostWhereInput {
     const where: Prisma.BlogPostWhereInput = {}
 
+    if (filters.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { content: { contains: filters.search, mode: 'insensitive' } },
+        { excerpt: { contains: filters.search, mode: 'insensitive' } },
+        { author: { name: { contains: filters.search, mode: 'insensitive' } } }
+      ]
+    }
+
     return where
   }
 

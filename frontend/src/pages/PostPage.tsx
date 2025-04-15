@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import BlogLayout from '@/components/BlogLayout'
 import BlogComments from '@/components/BlogComments'
@@ -30,16 +30,15 @@ const PostPage = () => {
   )
 
   const isLoading = isLoadingPost || isLoadingComments
-
   useEffect(() => {
     const hash = window.location.hash
-    if (hash) {
-      const element = document.querySelector(hash)
+    if (hash && !isLoadingComments && comments) {
+      const element = document.getElementById(hash.substring(1))
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
-  }, [])
+  }, [isLoadingComments, comments, post])
 
   if (isLoading) {
     return (

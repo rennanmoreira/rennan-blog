@@ -1,23 +1,23 @@
-import { AuthGuard } from '@auth/guards/auth.guard'
+import { AuthGuard } from '@auth/auth.guard'
 import { UnauthorizedException } from '@nestjs/common'
 import { ExecutionContext } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { Reflector } from '@nestjs/core'
-import { UserService } from '@users/services/user.service'
-import { JwtAccessTokenPayload } from '@auth/interfaces/jwt-payload.interface'
-import { Users } from '@prisma/client'
+import { AccountService } from '@accounts/account.service'
+import { Account } from '@prisma/client'
+import { JwtAccessTokenPayload } from '../auth.dto'
 
 describe('AuthGuard', () => {
   let authGuard: AuthGuard
   let jwtService: JwtService
-  let userService: UserService
+  let AccountService: AccountService
   let reflector: Reflector
 
   const mockJwtService = {
     verifyAsync: jest.fn()
   }
 
-  const mockUserService = {
+  const mockAccountService = {
     getById: jest.fn()
   }
 
@@ -42,9 +42,9 @@ describe('AuthGuard', () => {
 
   beforeEach(async () => {
     jwtService = mockJwtService as any
-    userService = mockUserService as any
+    AccountService = mockAccountService as any
     reflector = mockReflector as any
-    authGuard = new AuthGuard(jwtService, userService, reflector)
+    authGuard = new AuthGuard(jwtService, reflector, AccountService)
   })
 
   afterEach(() => {
@@ -81,14 +81,14 @@ describe('AuthGuard', () => {
     mockReflector.getAllAndOverride.mockReturnValue(false)
 
     const validTokenPayload: JwtAccessTokenPayload = {
-      sub: 1,
+      uid: '1',
       email: 'test@example.com',
-      role: 'PATIENT',
+      is_admin: true,
       token_version: 1
     }
 
     mockJwtService.verifyAsync.mockResolvedValue(validTokenPayload)
-    mockUserService.getById.mockResolvedValue(null)
+    mockAccountService.getById.mockResolvedValue(null)
 
     const context = mockExecutionContext(mockRequest('valid_token'))
 
@@ -99,9 +99,9 @@ describe('AuthGuard', () => {
     mockReflector.getAllAndOverride.mockReturnValue(false)
 
     const validTokenPayload: JwtAccessTokenPayload = {
-      sub: 1,
+      uid: '1',
       email: 'test@example.com',
-      role: 'PATIENT',
+      is_admin: true,
       token_version: 1
     }
 
@@ -112,7 +112,7 @@ describe('AuthGuard', () => {
     }
 
     mockJwtService.verifyAsync.mockResolvedValue(validTokenPayload)
-    mockUserService.getById.mockResolvedValue(user)
+    mockAccountService.getById.mockResolvedValue(user)
 
     const context = mockExecutionContext(mockRequest('valid_token'))
 
@@ -122,11 +122,19 @@ describe('AuthGuard', () => {
   it('should set the user in the request if token is valid and user exists', async () => {
     mockReflector.getAllAndOverride.mockReturnValue(false)
 
-    const userValidated: Users = {
-      id: 1,
+    const userValidated: Account = {
+      id: '1',
+      name: 'John Doe',
+      is_active: true,
+      is_email_verified: true,
+      is_moderator: false,
+      first_name: 'John',
+      last_name: 'Doe',
+      lead_origin: null,
+      photo_url: null,
+      birth_date: null,
       email: 'contact@email.com',
-      people_id: 1,
-      role: 'PATIENT',
+      is_admin: true,
       password: 'password',
       token_version: 1,
       refresh_token: 'refresh_token',
@@ -141,7 +149,7 @@ describe('AuthGuard', () => {
     }
 
     mockJwtService.verifyAsync.mockResolvedValue(userValidated)
-    mockUserService.getById.mockResolvedValue(user)
+    mockAccountService.getById.mockResolvedValue(user)
 
     const request = mockRequest('valid_token')
     const context = mockExecutionContext(request)

@@ -8,6 +8,10 @@
 
 export type BlogPostControllerGetAllParams = {
   /**
+   * Search query
+   */
+  search?: string
+  /**
    * Title of the BlogPost
    */
   title?: string

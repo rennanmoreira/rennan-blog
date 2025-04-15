@@ -17,7 +17,7 @@ export class BlogPostController {
   constructor(private readonly blogPostService: BlogPostService) {}
 
   @Post()
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @ApiResponse({
     status: 201,
     description: 'BlogPost created',
@@ -36,6 +36,7 @@ export class BlogPostController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, default: 1 })
   @ApiQuery({ name: 'offset', required: false, type: Number, default: 10 })
+  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'sort_by_created_at', required: false, type: String, default: 'desc' })
   @ApiQuery({ name: 'sort_by_updated_at', required: false, type: String, default: 'desc' })
   async getAll(
@@ -48,7 +49,7 @@ export class BlogPostController {
   }
 
   @Get(':blog_post_id')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @ApiResponse({
     status: 200,
     description: 'Get blogPost by id',
@@ -59,7 +60,7 @@ export class BlogPostController {
   }
 
   @Put(':blog_post_id')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @ApiResponse({
     status: 200,
     description: 'BlogPost updated',
@@ -73,7 +74,7 @@ export class BlogPostController {
   }
 
   @Delete(':blog_post_id')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @ApiResponse({
     status: 200,
     description: 'BlogPost soft deleted'

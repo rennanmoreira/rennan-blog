@@ -12,7 +12,7 @@ import { AccountService } from '@accounts/account.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('accounts')
-@ApiBearerAuth()
+@ApiBearerAuth('jwt-auth')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 

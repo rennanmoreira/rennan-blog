@@ -3,8 +3,8 @@
     "<rootDir>/src"
   ],
   "testMatch": [
-    "**/tests/**/*.spec.ts",
-    "**/*.test.ts"
+    "<rootDir>/src/**/tests/**/*.spec.ts",
+    "<rootDir>/src/**/*.test.ts"
   ],
   "testEnvironment": "node",
   "transform": {
@@ -13,6 +13,7 @@
   "collectCoverage": true,
   "collectCoverageFrom": [
     "src/modules/**/*.ts",
+    "src/core/**/*.ts",
     "!src/main.ts",
     "!src/modules/*/index.ts",
     "!src/modules/*/enum/*.ts",

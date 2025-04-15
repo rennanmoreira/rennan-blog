@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { AuthService } from '@auth/services/auth.service'
-import { UserService } from '@users/services/user.service'
+import { AuthService } from '@auth/auth.service'
+import { AccountService } from '@accounts/account.service'
 import { JwtService } from '@nestjs/jwt'
 import { UnauthorizedException } from '@nestjs/common'
 import * as bcrypt from 'bcryptjs'
-import { Users } from '@prisma/client'
-import { ChangePasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '@auth/dtos/auth.dto'
+import { Account } from '@prisma/client'
+import { ChangePasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '@auth/auth.dto'
 
 jest.mock('bcryptjs')
 
 describe('AuthService', () => {
   let authService: AuthService
-  let userService: UserService
+  let userService: AccountService
   let jwtService: JwtService
 
-  const mockUserService = {
+  const mockAccountService = {
     findByEmail: jest.fn(),
     getById: jest.fn(),
     create: jest.fn(),
@@ -26,15 +26,22 @@ describe('AuthService', () => {
     decode: jest.fn()
   }
 
-  const mockUser: Users = {
-    id: 1,
+  const mockUser: Account = {
+    id: '1',
+    name: 'Test User',
     email: 'test@example.com',
     password: 'hashed_password',
+    is_email_verified: true,
+    is_active: true,
+    is_admin: false,
+    is_moderator: false,
+    first_name: 'Test',
+    last_name: 'User',
     token_version: 1,
     refresh_token: 'old_refresh_token',
     created_at: new Date(),
     updated_at: new Date()
-  } as Users
+  } as Account
 
   const mockDecodedToken = { sub: 1 }
 
@@ -42,13 +49,13 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: UserService, useValue: mockUserService },
+        { provide: AccountService, useValue: mockAccountService },
         { provide: JwtService, useValue: mockJwtService }
       ]
     }).compile()
 
     authService = module.get<AuthService>(AuthService)
-    userService = module.get<UserService>(UserService)
+    userService = module.get<AccountService>(AccountService)
     jwtService = module.get<JwtService>(JwtService)
 
     jest.clearAllMocks()
@@ -67,7 +74,7 @@ describe('AuthService', () => {
       const accessToken = 'access_token'
       const refreshToken = 'refresh_token'
 
-      mockUserService.findByEmail.mockResolvedValue(mockUser)
+      mockAccountService.findByEmail.mockResolvedValue(mockUser)
       mockJwtService.sign.mockReturnValueOnce(accessToken).mockReturnValueOnce(refreshToken)
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
@@ -78,10 +85,33 @@ describe('AuthService', () => {
         refresh_token: refreshToken
       })
 
-      expect(mockUserService.update).toHaveBeenCalledWith(mockUser.id, {
+      expect(mockAccountService.update).toHaveBeenCalledWith(mockUser.id, {
         refresh_token: refreshToken,
         token_version: mockUser.token_version + 1
       })
+    })
+
+    it('should throw UnauthorizedException when email does not exist', async () => {
+      const loginDto = { email: 'nonexistent@example.com', password: 'password123' }
+
+      mockAccountService.findByEmail.mockResolvedValue(null)
+
+      await expect(authService.login(loginDto)).rejects.toThrow(UnauthorizedException)
+    })
+
+    it('should throw UnauthorizedException when password is incorrect', async () => {
+      const loginDto = { email: 'test@example.com', password: 'wrong_password' }
+      const mockUser = {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed_password',
+        token_version: 1
+      }
+
+      mockAccountService.findByEmail.mockResolvedValue(mockUser)
+      ;(bcrypt.compare as jest.Mock).mockResolvedValue(false)
+
+      await expect(authService.login(loginDto)).rejects.toThrow(UnauthorizedException)
     })
   })
 
@@ -104,7 +134,7 @@ describe('AuthService', () => {
         sub: mockUser.id,
         token_version: mockUser.token_version
       })
-      mockUserService.getById.mockResolvedValue(mockUser)
+      mockAccountService.getById.mockResolvedValue(mockUser)
       mockJwtService.sign.mockReturnValueOnce(newAccessToken).mockReturnValueOnce(newRefreshToken)
 
       const result = await authService.refreshToken(oldRefreshToken)
@@ -114,7 +144,7 @@ describe('AuthService', () => {
         refresh_token: newRefreshToken
       })
 
-      expect(mockUserService.update).toHaveBeenCalledWith(mockUser.id, {
+      expect(mockAccountService.update).toHaveBeenCalledWith(mockUser.id, {
         refresh_token: newRefreshToken
       })
     })
@@ -131,7 +161,7 @@ describe('AuthService', () => {
       const oldRefreshToken = 'old_refresh_token'
 
       mockJwtService.decode.mockReturnValue({ sub: 1 })
-      mockUserService.getById.mockResolvedValue(null)
+      mockAccountService.getById.mockResolvedValue(null)
 
       await expect(authService.refreshToken(oldRefreshToken)).rejects.toThrow(UnauthorizedException)
     })
@@ -150,7 +180,7 @@ describe('AuthService', () => {
         sub: mockUser.id,
         token_version: mockUser.token_version
       })
-      mockUserService.getById.mockResolvedValue(mockUser)
+      mockAccountService.getById.mockResolvedValue(mockUser)
 
       await expect(authService.refreshToken(oldRefreshToken)).rejects.toThrow(UnauthorizedException)
     })
@@ -160,10 +190,10 @@ describe('AuthService', () => {
     it('should change the password successfully', async () => {
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
       ;(bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password')
-      mockUserService.getById.mockResolvedValue(mockUser)
+      mockAccountService.getById.mockResolvedValue(mockUser)
 
       const changePasswordDto: ChangePasswordDTO = {
-        user_id: 1,
+        account_id: '1',
         password: 'old_password',
         new_password: 'new_password',
         new_password_confirmation: 'new_password'
@@ -171,18 +201,18 @@ describe('AuthService', () => {
 
       await authService.changePassword(changePasswordDto)
 
-      expect(mockUserService.update).toHaveBeenCalledWith(mockUser.id, {
+      expect(mockAccountService.update).toHaveBeenCalledWith(mockUser.id, {
         password: 'new_hashed_password',
         refresh_token: null
       })
     })
 
     it('should throw UnauthorizedException for invalid user', async () => {
-      mockUserService.getById.mockResolvedValue(null)
+      mockAccountService.getById.mockResolvedValue(null)
 
       await expect(
         authService.changePassword({
-          user_id: 1,
+          account_id: '1',
           password: 'old_password',
           new_password: 'new_password',
           new_password_confirmation: 'new_password'
@@ -192,11 +222,11 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for incorrect password', async () => {
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(false)
-      mockUserService.getById.mockResolvedValue(mockUser)
+      mockAccountService.getById.mockResolvedValue(mockUser)
 
       await expect(
         authService.changePassword({
-          user_id: 1,
+          account_id: '1',
           password: 'wrong_password',
           new_password: 'new_password',
           new_password_confirmation: 'new_password'
@@ -210,7 +240,7 @@ describe('AuthService', () => {
 
     beforeEach(() => {
       resetPasswordData = {
-        user_id: 1,
+        account_id: '1',
         password: 'new_password',
         password_confirmation: 'new_password',
         token: 'valid_token'
@@ -218,13 +248,13 @@ describe('AuthService', () => {
     })
 
     it('should reset the user password if token and confirmation are valid', async () => {
-      mockUserService.getById.mockResolvedValue(mockUser)
+      mockAccountService.getById.mockResolvedValue(mockUser)
       mockJwtService.decode.mockReturnValue(mockDecodedToken)
       ;(bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password')
 
       await authService.resetPassword(resetPasswordData)
 
-      expect(mockUserService.update).toHaveBeenCalledWith(mockUser.id, {
+      expect(mockAccountService.update).toHaveBeenCalledWith(mockUser.id, {
         password: 'new_hashed_password',
         refresh_token: null,
         token_version: mockUser.token_version + 1
@@ -232,7 +262,7 @@ describe('AuthService', () => {
     })
 
     it('should throw UnauthorizedException if user does not exist', async () => {
-      mockUserService.getById.mockResolvedValue(null)
+      mockAccountService.getById.mockResolvedValue(null)
 
       await expect(authService.resetPassword(resetPasswordData)).rejects.toThrow(UnauthorizedException)
     })
@@ -272,7 +302,7 @@ describe('AuthService', () => {
 
       await authService.logout('refresh_token')
 
-      expect(mockUserService.update).toHaveBeenCalledWith(mockDecodedToken.sub, expectedUpdateData)
+      expect(mockAccountService.update).toHaveBeenCalledWith(mockDecodedToken.sub, expectedUpdateData)
     })
 
     it('should not call update if the token is invalid', async () => {
@@ -280,7 +310,7 @@ describe('AuthService', () => {
 
       await authService.logout('invalid_token')
 
-      expect(mockUserService.update).not.toHaveBeenCalled()
+      expect(mockAccountService.update).not.toHaveBeenCalled()
     })
   })
 })

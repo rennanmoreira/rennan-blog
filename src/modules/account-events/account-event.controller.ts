@@ -12,7 +12,7 @@ import { AccountEventService } from '@account-events/account-event.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('account-events')
-@ApiBearerAuth()
+@ApiBearerAuth('jwt-auth')
 export class AccountEventController {
   constructor(private readonly accountEventService: AccountEventService) {}
 

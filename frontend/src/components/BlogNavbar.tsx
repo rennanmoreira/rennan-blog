@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Search, BookOpen, Menu, X, BookMarked } from 'lucide-react'
+import { Search, Menu, X } from 'lucide-react'
 import UserMenu from './UserMenu'
 import AuthModal from './AuthModal'
 import SearchModal from './SearchModal'
@@ -66,7 +66,7 @@ const BlogNavbar = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in cursor-pointer">
             <nav className="flex flex-col gap-4">
-              <div className="flex justify-between">
+              <div className="flex justify-between md:flex-row">
                 <Link
                   to="/"
                   className="px-2 py-1 text-foreground hover:text-blog-primary transition-colors"
@@ -74,22 +74,16 @@ const BlogNavbar = () => {
                   Home
                 </Link>
                 <Link
+                  to="/posts"
+                  className="px-2 py-1 text-foreground hover:text-blog-primary transition-colors"
+                  onClick={() => setIsMenuOpen(false)}>
+                  Posts
+                </Link>
+                <Link
                   to="/about"
                   className="px-2 py-1 text-foreground hover:text-blog-primary transition-colors"
                   onClick={() => setIsMenuOpen(false)}>
                   About
-                </Link>
-                <Link
-                  to="/posts"
-                  className="px-2 py-1 text-foreground hover:text-blog-primary transition-colors"
-                  onClick={() => setIsMenuOpen(false)}>
-                  All Posts
-                </Link>
-                <Link
-                  to="/admin"
-                  className="px-2 py-1 text-foreground hover:text-blog-primary transition-colors"
-                  onClick={() => setIsMenuOpen(false)}>
-                  Admin
                 </Link>
               </div>
               <div className="mt-2 cursor-pointer">

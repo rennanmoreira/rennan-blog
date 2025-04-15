@@ -42,35 +42,35 @@ export class AuthController {
   }
 
   @Post('logout')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @HttpCode(200)
   async logout(@Body('refresh_token') refresh_token: string): Promise<void> {
     await this.authService.logout(refresh_token)
   }
 
   @Get('me')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @HttpCode(200)
   async getMe(@Req() request: Request): Promise<ResponseAccountDTO> {
     return this.authService.getMe(request['user'])
   }
 
   @Post('refresh-token')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @HttpCode(201)
   async refresh(@Body('refresh_token') refresh_token: string): Promise<{ access_token: string }> {
     return this.authService.refreshToken(refresh_token)
   }
 
   @Post('reset-password')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @HttpCode(200)
   async resetPassword(@Body() data: ResetPasswordDTO): Promise<void> {
     await this.authService.resetPassword(data)
   }
 
   @Post('change-password')
-  @ApiBearerAuth()
+  @ApiBearerAuth('jwt-auth')
   @HttpCode(200)
   async changePassword(@Body() data: ChangePasswordDTO): Promise<void> {
     await this.authService.changePassword(data)

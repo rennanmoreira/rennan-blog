@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, ChevronRight, PlusCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-service'
-import { getAllPosts } from '@/services/blogService'
+import { searchPosts } from '@/services/blogService'
 import { BlogPost } from '@/services/blogService'
 import LoginPromptModal from '@/components/LoginPromptModal'
 
@@ -19,7 +19,7 @@ const Index = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const allPosts = await getAllPosts()
+        const allPosts = await searchPosts()
         setPosts(allPosts)
       } catch (error) {
         console.error('Failed to fetch posts:', error)
@@ -76,9 +76,9 @@ const Index = () => {
             </section>
 
             <section>
-              <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 border-b pb-4">
                 <h2 className="font-serif font-bold text-2xl">Recent Posts</h2>
-                <div className="flex gap-4">
+                <div className="flex  gap-4">
                   <Button
                     onClick={() => {
                       if (user) {

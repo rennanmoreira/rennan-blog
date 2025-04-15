@@ -133,6 +133,14 @@ export class UpdateBlogPostDTO {
 export class FilterBlogPostDTO {
   @ApiPropertyOptional({
     type: String,
+    description: 'Search query'
+  })
+  @IsOptional()
+  @IsString()
+  search?: string
+
+  @ApiPropertyOptional({
+    type: String,
     description: 'Title of the BlogPost'
   })
   @IsOptional()

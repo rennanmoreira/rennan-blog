@@ -12,7 +12,7 @@ import { CommentService } from '@comments/comment.service'
 // import { Roles } from '@auth/decorators/roles.decorator';
 
 @Controller('comments')
-@ApiBearerAuth()
+@ApiBearerAuth('jwt-auth')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 

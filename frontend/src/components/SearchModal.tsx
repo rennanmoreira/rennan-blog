@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback, useMemo } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Search, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { searchPosts } from '@/services/blogService'
 import { debounce } from '@/lib/utils'
-import { ResponseBlogPostDTO } from '@/api/model'
+import { useBlogStore } from '@/stores/blogStore'
 
 interface SearchModalProps {
   isOpen: boolean
@@ -13,9 +12,7 @@ interface SearchModalProps {
 }
 
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<ResponseBlogPostDTO[]>([])
-  const [isSearching, setIsSearching] = useState(false)
+  const { posts, isLoading, searchQuery, setSearchQuery, searchBlogPosts } = useBlogStore()
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -27,40 +24,30 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
       }, 100)
     }
   }, [isOpen])
+  // Create memoized debounced search function
+  const debouncedSearchFn = useMemo(
+    () =>
+      debounce(async (query: string) => {
+        await searchBlogPosts(query)
+      }, 400),
+    [searchBlogPosts]
+  )
 
-  // Clear search when modal closes
+  // Load initial results when modal opens
   useEffect(() => {
-    if (!isOpen) {
-      setSearchQuery('')
-      setSearchResults([])
+    if (isOpen && posts.length === 0) {
+      searchBlogPosts()
     }
-  }, [isOpen])
+  }, [isOpen, posts.length, searchBlogPosts])
 
-  // Debounced search function
-  const debouncedSearch = debounce(async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([])
-      setIsSearching(false)
-      return
-    }
-
-    try {
-      const results = await searchPosts(query)
-      setSearchResults(results)
-    } catch (error) {
-      console.error('Error searching posts:', error)
-    } finally {
-      setIsSearching(false)
-    }
-  }, 300)
-
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value
-    setSearchQuery(query)
-    setIsSearching(true)
-    debouncedSearch(query)
-  }
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const query = e.target.value
+      setSearchQuery(query)
+      debouncedSearchFn(query)
+    },
+    [debouncedSearchFn, setSearchQuery]
+  )
 
   // Navigate to post and close modal
   const handlePostClick = (postId: number) => {
@@ -95,17 +82,20 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
               ref={inputRef}
               type="search"
               placeholder="Search posts..."
-              className="pl-10 pr-10"
+              className="pl-10"
               value={searchQuery}
               onChange={handleSearchChange}
             />
+            {isLoading && (
+              <Loader2 className="absolute right-9 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
           </div>
         </div>
 
-        {searchResults.length > 0 && (
+        {posts.length > 0 && (
           <div className="max-h-[70vh] overflow-y-auto border-t">
             <div className="p-2">
-              {searchResults.map((post) => (
+              {posts.map((post) => (
                 <div
                   key={post.id}
                   className="p-3 hover:bg-muted rounded-md cursor-pointer"
@@ -123,8 +113,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {searchResults.length === 0 &&
-          (isSearching ? (
+        {posts.length === 0 &&
+          (isLoading ? (
             <div className="flex items-center justify-center pt-1 pb-8">
               <Loader2 className="animate-spin" />
             </div>
