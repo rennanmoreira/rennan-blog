@@ -27,7 +27,5 @@ RUN npm run prisma:generate
 
 EXPOSE 3000 9229
 
-# Comentar essas linhas abaixo quando for rodar local com o docker
-# RUN npm run build
-# CMD [ "npm", "run", "start:prod" ]
+CMD ["sh", "-c", "chmod +x ./build.sh && ./build.sh"]
 

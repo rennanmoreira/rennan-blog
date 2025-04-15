@@ -1,0 +1,52 @@
+steps:
+  # Create .env file
+  - name: 'node:22'
+    entrypoint: 'npm'
+    args: ['run', 'create-env']
+    env:
+      - 'APP_NAME=${_APP_NAME}'
+      - 'DATABASE_URL=${_DATABASE_URL}'
+      - 'DATABASE_URL_SHADOW=${_DATABASE_URL_SHADOW}'
+      - 'FF_CLIENT_API_KEY_ENABLED=${_FF_CLIENT_API_KEY_ENABLED}'
+      - 'FF_SWAGGER_AUTH_ENABLED=${_FF_SWAGGER_AUTH_ENABLED}'
+      - 'JWT_SECRET=${_JWT_SECRET}'
+      - 'METHODS=${_METHODS}'
+      - 'NODE_ENV=${_NODE_ENV}'
+      - 'ORIGIN=${_ORIGIN}'
+      - 'PORT=${_PORT}'
+      - 'SWAGGER_PASSWORD=${_SWAGGER_PASSWORD}'
+      - 'SWAGGER_USERNAME=${_SWAGGER_USERNAME}'
+      - 'TZ=${_TZ}'
+
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/$_PROJECT_API_NAME:latest', '.']
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/$_PROJECT_API_NAME:latest']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        '$_PROJECT_API_NAME',
+        '--image',
+        'gcr.io/$PROJECT_ID/$_PROJECT_API_NAME:latest',
+        '--region',
+        '$_API_REGION',
+        '--platform',
+        'managed',
+        '--port',
+        '$_PORT',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - gcr.io/$PROJECT_ID/$_PROJECT_API_NAME:latest
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
