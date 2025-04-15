@@ -1,4 +1,3 @@
-
 </br>
 </br>
 <div>
@@ -13,14 +12,14 @@
 
 ## 📄 Description
 
-**Rennan's Blog API** is a NestJS pre-configured and ready-to-use API structure, firebase authentication and Prisma with PostgresSQL or MySQL initial configurations.
+**Rennan's Blog API** is a NestJS pre-configured and ready-to-use API structure with JWT authentication and Prisma with PostgresSQL or MySQL initial configurations.
 
 </br>
 
 ## 📋 Features
 
-- 🚀 **Ready-to-use API Blog**
-- 🔐 **Firebase Authentication system**
+- 🚀 **Online Demo: [https://rennan-blog.web.app](https://rennan-blog.web.app)**
+- 🔐 **JWT Authentication system**
 - 🐘 **PostgreSQL with Prisma ORM**
 - 📦 **Pre-configured Docker setup**
 - ✅ **Testing environment configured [fixing]**
@@ -30,55 +29,85 @@
 ## 🔧 Installation
 
 > Clone repository
+>
 > ```sh
 > git clone https://github.com/rennanmoreira/rennan-blog-api.git
 > ```
+>
 > Enter in new repository folder
+>
 > ```sh
 > cd rennan-blog
 > ```
-> Install all node dependencies (use yarn or npm install)
-> ```sh
-> yarn
-> ```
+>
 > Create a .env file based on .env.example:
+>
 > ```sh
 > cp .env.example .env
 > ```
 
 Attention: You need to create a .env file in the root of the project with .env.example properties.
 
+You can use Docker compose to run the application or you can run the application manually.
+
+### Docker
+
+> Run docker compose
+>
+> ```sh
+> docker compose up
+> ```
+
+### Manual
+
+> Install all node dependencies (use yarn or npm install)
+>
+> ```sh
+> yarn
+> ```
+>
 > Generate typed files from schema.prisma to typescript
+>
 > ```sh
 > yarn prisma:generate
 > ```
+>
 > Run nest application
+>
 > ```sh
 > yarn start
 > ```
-> Watch mode
+>
+> Or run nest in watch mode
+>
 > ```sh
 > yarn dev
 > ```
-
 
 </br>
 
 ## 📦 Database
 
 > Pull and generate schema.prisma file from real database in PostgreSQL or MySQL
+>
 > ```sh
 > yarn prisma:pull
 > ```
+>
 > Apply seed to database
+>
 > ```sh
 > yarn prisma:seed
 > ```
+>
 > Generate or apply the [Prisma](https://github.com/prisma/prisma) migration
+>
 > ```sh
 > yarn prisma:migrate
 > ```
+>
 > Create new migration after edit schema.prisma
+>
 > ```sh
 > yarn prisma:migrate:create new_migration_name
 > ```
@@ -90,14 +119,19 @@ Attention: To run the application for first time using new database, you need to
 ## ⚙️ Testing (SORRY! Tests automation needs to be fixed)
 
 > Unit tests
+>
 > ```sh
 > yarn test
 > ```
+>
 > Tests e2e
+>
 > ```sh
 > yarn test:e2e
 > ```
+>
 > Test coverage
+>
 > ```sh
 > yarn test:cov
 > ```
@@ -105,14 +139,14 @@ Attention: To run the application for first time using new database, you need to
 </br>
 
 ## 📌 API Documentation
+
 > Generate visual documentation updated from API and host on: http://localhost:8080
+>
 > ```sh
 > generate:doc
 > ```
->
 
 After starting the application, access the Swagger documentation at: http://localhost:3000/api-swagger, and to get swagger in JSON format (required for [Orval](https://github.com/orval-labs/orval)) use this: http://localhost:3000/api-swagger-json
-
 
 </br>
 
