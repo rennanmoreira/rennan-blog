@@ -42,7 +42,9 @@ steps:
         'managed',
         '--port',
         '$_PORT',
-        '--allow-unauthenticated'
+        '--allow-unauthenticated',
+        '--command=npm',
+        '--args=run,start:prod'
       ]
 
 images:
