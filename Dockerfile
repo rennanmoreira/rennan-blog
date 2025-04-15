@@ -5,6 +5,7 @@ ENV TZ="America/Sao_Paulo"
 ARG NODE_ENV
 ENV NODE_ENV=$NODE_ENV
 ENV NODE_OPTIONS="--max-old-space-size=8192"
+RUN echo "NODE_ENV=$NODE_ENV"
 
 RUN apk add --no-cache openssl bash tzdata
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -27,6 +28,6 @@ RUN npm run prisma:generate
 
 EXPOSE 3000 9229 8080
 
-RUN if [ "$NODE_ENV" = "production" ]; then chmod +x ./build.sh && ./build.sh; else echo "Skipping build.sh (NODE_ENV=$NODE_ENV)"; fi
+RUN if [ "$NODE_ENV" = "production" ]; then npm run build && npm run start:prod; else echo "Skipping build.sh (NODE_ENV=$NODE_ENV)"; fi
 
 
